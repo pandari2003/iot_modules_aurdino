@@ -25,21 +25,21 @@ Servo L4Knee;
 
 //--------------- Pin Mapping ----------------//
 
-#define L1_HIP1 13
-#define L1_HIP2 12
-#define L1_KNEE 14
+#define L1_HIP1 4
+#define L1_HIP2 2
+#define L1_KNEE 5
 
-#define L2_HIP1 27
-#define L2_HIP2 26
-#define L2_KNEE 25
+#define L2_HIP1 18
+#define L2_HIP2 19
+#define L2_KNEE 21
 
-#define L3_HIP1 33
-#define L3_HIP2 32
-#define L3_KNEE 35
+#define L3_HIP1 34
+#define L3_HIP2 35
+#define L3_KNEE 32
 
-#define L4_HIP1 18
-#define L4_HIP2 19
-#define L4_KNEE 21
+#define L4_HIP1 33
+#define L4_HIP2 25
+#define L4_KNEE 26
 
 //------------------------------------------------
 enum Motion
@@ -65,21 +65,33 @@ void initServos()
   ESP32PWM::allocateTimer(2);
   ESP32PWM::allocateTimer(3);
 
-  L1Hip1.attach(L1_HIP1);
-  L1Hip2.attach(L1_HIP2);
-  L1Knee.attach(L1_KNEE);
+  L1Hip1.setPeriodHertz(50);
+L1Hip1.attach(L1_HIP1, 500, 2400);
+  L1Hip2.setPeriodHertz(50);
+L1Hip2.attach(L1_HIP2, 500, 2400);
+  L1Knee.setPeriodHertz(50);
+L1Knee.attach(L1_KNEE, 500, 2400);
 
-  L2Hip1.attach(L2_HIP1);
-  L2Hip2.attach(L2_HIP2);
-  L2Knee.attach(L2_KNEE);
+  L2Hip1.setPeriodHertz(50);
+L2Hip1.attach(L2_HIP1, 500, 2400);
+  L2Hip2.setPeriodHertz(50);
+L2Hip2.attach(L2_HIP2, 500, 2400);
+  L2Knee.setPeriodHertz(50);
+L2Knee.attach(L2_KNEE, 500, 2400);
 
-  L3Hip1.attach(L3_HIP1);
-  L3Hip2.attach(L3_HIP2);
-  L3Knee.attach(L3_KNEE);
+  L3Hip1.setPeriodHertz(50);
+L3Hip1.attach(L3_HIP1, 500, 2400);
+  L2Hip2.setPeriodHertz(50);
+L3Hip2.attach(L3_HIP2, 500, 2400);
+  L3Knee.setPeriodHertz(50);
+L3Knee.attach(L3_KNEE, 500, 2400);
 
-  L4Hip1.attach(L4_HIP1);
-  L4Hip2.attach(L4_HIP2);
-  L4Knee.attach(L4_KNEE);
+  L4Hip1.setPeriodHertz(50);
+L4Hip1.attach(L4_HIP1, 500, 2400);
+  L4Hip2.setPeriodHertz(50);
+L4Hip2.attach(L4_HIP2, 500, 2400);
+  L4Knee.setPeriodHertz(50);
+L4Knee.attach(L4_KNEE, 500, 2400);
 }
 
 void centerServos()

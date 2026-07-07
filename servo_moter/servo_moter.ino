@@ -1,9 +1,9 @@
-#include <Servo.h>
+#include <ESP32Servo.h>
 
 Servo myServo;
 
 void setup() {
-  myServo.attach(9);    // Servo signal connected to Digital Pin 9
+  myServo.attach(4);    // Servo signal connected to Digital Pin 9
 }
 
 void loop() {
