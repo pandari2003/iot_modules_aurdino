@@ -27,15 +27,15 @@ const int servoB2pin = 2;
 const int servoB3pin = 3;
 const int servoB4pin = 20;
 
-const int servoH1Pin = 4;   // Front Left Forward 4
-const int servoH2Pin = 5;   // Front Right Back 5
-const int servoH3Pin = 18;  // back Left Back 6
-const int servoH4Pin = 19;  // back Right Forward 8
+const int servoH1Pin = 4;   // Front Left Forward (servo 8)
+const int servoH2Pin = 5;   // Front Right Back 5 (servo 7)
+const int servoH3Pin = 18;  // back Left Back 6 ((servo 6)
+const int servoH4Pin = 19;  // back Right Forward 8 (servo 5)
 
-const int servoKN1Pin = 7;   // Front Left 
-const int servoKN2Pin = 15;  // Front Right 
-const int servoKN3Pin = 16;  // back Left 
-const int servoKN4Pin = 17;  // back Right 
+const int servoKN1Pin = 46;   // Front Left (servo 12)
+const int servoKN2Pin = 15;  // Front Right (servo 11)
+const int servoKN3Pin = 16;  // back Left (servo 9)
+const int servoKN4Pin = 17;  // back Right (servo 10)
 
 
 
