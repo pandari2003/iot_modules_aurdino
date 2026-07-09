@@ -352,7 +352,7 @@ servoH2.attach(5);
 servoH3.attach(18);
 servoH4.attach(19);
 
-servoKN1.attach(7); 
+servoKN1.attach(46); 
 servoKN2.attach(15); 
 servoKN3.attach(16); 
 servoKN4.attach(17); 
