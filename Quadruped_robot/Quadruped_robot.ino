@@ -22,10 +22,10 @@ Servo servoKN2;
 Servo servoKN3;
 Servo servoKN4;
 
-const int servoB1pin = 1;
-const int servoB2pin = 2;
-const int servoB3pin = 3;
-const int servoB4pin = 20;
+const int servoB1pin = 42;
+const int servoB2pin = 41;
+const int servoB3pin = 40;
+const int servoB4pin = 39;
 
 const int servoH1Pin = 4;   // Front Left Forward (servo 8)
 const int servoH2Pin = 5;   // Front Right Back 5 (servo 7)
@@ -243,12 +243,41 @@ void walkBackward()
 
 /*****************right turn**********************/
 void Rightmove(){
+    for (int step = 0; step < 5; step++)
+  {
+    //---------------- STEP 1 ----------------//
+    for (int i = 90; i <= 110; i++)
+    {
+      servoB1.write(i);
+      servoB3.write(i);
+
+      servoB2.write(180 - i);
+      servoB4.write(180 - i);
+
+      delay(80);
+    }
+    delay(40);
+  }
 
 }
 
 /************************left move***************/
 void Leftmove(){
+    for (int step = 0; step < 5; step++)
+  {
+    //---------------- STEP 1 ----------------//
+    for (int i = 110; i >= 90; i--)
+    {
+      servoB1.write(i);
+      servoB3.write(i);
 
+      servoB2.write(180 - i);
+      servoB4.write(180 - i);
+
+      delay(80);
+    }
+    delay(40);
+  }
 }
 /*************rooting and web page**************/
 void root() {
@@ -357,10 +386,10 @@ servoKN2.attach(15);
 servoKN3.attach(16); 
 servoKN4.attach(17); 
  
-servoB1.attach(1);
-servoB2.attach(2);
-servoB3.attach(3);
-servoB4.attach(20);
+servoB1.attach(42);
+servoB2.attach(41);
+servoB3.attach(40);
+servoB4.attach(39);
 
 WiFi.softAP(ssid,password);
 
