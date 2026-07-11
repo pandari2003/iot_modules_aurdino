@@ -234,7 +234,6 @@ void walkBackward()
       delay(30);
     }
   }
-
  
 }
 
