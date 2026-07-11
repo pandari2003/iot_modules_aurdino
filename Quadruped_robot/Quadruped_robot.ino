@@ -37,9 +37,6 @@ const int servoKN2Pin = 15;  // Front Right (servo 11)
 const int servoKN3Pin = 16;  // back Left (servo 9)
 const int servoKN4Pin = 17;  // back Right (servo 10)
 
-
-
-
 /**********************sit robot******************/
 void Sit()
 {
@@ -60,7 +57,7 @@ void Sit()
         delay(50);      // Same speed as Stand
     }
 
-    delay(200);
+    delay(50);
 }
 
 /******************stand robot********************/
@@ -83,7 +80,7 @@ void Stand()
         delay(50);      // Adjust speed here
     }
 
-    delay(200);
+    delay(50);
 }
 
 /****************FORWARD****************/
@@ -246,7 +243,7 @@ void Rightmove(){
     for (int step = 0; step < 5; step++)
   {
     //---------------- STEP 1 ----------------//
-    for (int i = 90; i <= 110; i++)
+    for (int i = 70; i <= 110; i++)
     {
       servoB1.write(i);
       servoB3.write(i);
@@ -266,7 +263,7 @@ void Leftmove(){
     for (int step = 0; step < 5; step++)
   {
     //---------------- STEP 1 ----------------//
-    for (int i = 110; i >= 90; i--)
+    for (int i = 110; i >= 70; i--)
     {
       servoB1.write(i);
       servoB3.write(i);
@@ -376,20 +373,20 @@ void setup() {
 
 Serial.begin(115200);
 
-servoH1.attach(4);
-servoH2.attach(5);
-servoH3.attach(18);
-servoH4.attach(19);
+servoH1.attach(servoH1Pin);
+servoH2.attach(servoH2Pin);
+servoH3.attach(servoH3Pin);
+servoH4.attach(servoH4Pin);
 
-servoKN1.attach(46); 
-servoKN2.attach(15); 
-servoKN3.attach(16); 
-servoKN4.attach(17); 
- 
-servoB1.attach(42);
-servoB2.attach(41);
-servoB3.attach(40);
-servoB4.attach(39);
+servoKN1.attach(servoKN1Pin);
+servoKN2.attach(servoKN2Pin);
+servoKN3.attach(servoKN3Pin);
+servoKN4.attach(servoKN4Pin);
+
+servoB1.attach(servoB1pin);
+servoB2.attach(servoB2pin);
+servoB3.attach(servoB3pin);
+servoB4.attach(servoB4pin);
 
 WiFi.softAP(ssid,password);
 
