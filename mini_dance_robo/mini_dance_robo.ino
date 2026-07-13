@@ -39,7 +39,7 @@ int SPEED_LEVEL = 1;
 int servoDelay, servoStep, liftPauseMs, leanPauseMs;
 
 //======================================================
-// Mode â€” what the robot is currently doing, driven by web requests.
+// Mode .” what the robot is currently doing, driven by web requests.
 // Declared here near the top (before any function) so that Arduino's
 // auto-generated function prototypes, which get inserted above this
 // point otherwise, can see the type. Keep this above all functions.
@@ -228,7 +228,7 @@ void leftStepBack()
 }
 
 //======================================================
-// TURNING ("side moves") â€” only one leg steps forward at a time,
+// TURNING ("side moves") .” only one leg steps forward at a time,
 // which pivots the body toward the side that stays planted.
 //======================================================
 void turnLeftStep()   // only the RIGHT leg steps -> body pivots left
@@ -260,7 +260,7 @@ void turnRightStep()  // only the LEFT leg steps -> body pivots right
 }
 
 //======================================================
-// DANCE â€” cycles through a few canned moves each time it's called
+// DANCE .” cycles through a few canned moves each time it's called
 //======================================================
 int danceMoveIndex = 0;
 
