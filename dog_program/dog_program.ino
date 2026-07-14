@@ -24,22 +24,27 @@ const int KNEE_BL_PIN  = 10;
 const int KNEE_BR_PIN  = 11;
 
 //------------ Current Position --------//
-int hipFLPos = 140;
-int hipFRPos = 50;
-int hipBLPos = 140;
-int hipBRPos = 50;
+int hipFLPos = 90;
+int hipFRPos = 90;
+int hipBLPos = 90;
+int hipBRPos = 90;
 
-int kneeFLPos = 140;
-int kneeFRPos = 50;
-int kneeBLPos = 140;
-int kneeBRPos = 50;
+int kneeFLPos = 90;
+int kneeFRPos = 90;
+int kneeBLPos = 90;
+int kneeBRPos = 90;
 
 // Walking parameters
-const int HIP_FORWARD = 70;
-const int HIP_BACK    = 110;
+// Left legs
+const int HIP_LEFT_FORWARD = 70;
+const int HIP_LEFT_BACK    = 110;
 
-const int KNEE_UP     = 60;
-const int KNEE_DOWN   = 90;
+// Right legs (mirror)
+const int HIP_RIGHT_FORWARD = 110;
+const int HIP_RIGHT_BACK    = 70;
+
+const int KNEE_UP   = 60;
+const int KNEE_DOWN = 90;
 
 const int STEP_DELAY  = 15;
 
@@ -88,85 +93,93 @@ int kneeTarget)
     delay(STEP_DELAY);
   }
 }
+
+void moveTwoLegs(
+    Servo &hip1, Servo &knee1,
+    int &hipPos1, int &kneePos1,
+    int hipTarget1, int kneeTarget1,
+
+    Servo &hip2, Servo &knee2,
+    int &hipPos2, int &kneePos2,
+    int hipTarget2, int kneeTarget2)
+{
+    while (hipPos1 != hipTarget1 ||
+           kneePos1 != kneeTarget1 ||
+           hipPos2 != hipTarget2 ||
+           kneePos2 != kneeTarget2)
+    {
+        if (hipPos1 < hipTarget1) hipPos1++;
+        if (hipPos1 > hipTarget1) hipPos1--;
+
+        if (kneePos1 < kneeTarget1) kneePos1++;
+        if (kneePos1 > kneeTarget1) kneePos1--;
+
+        if (hipPos2 < hipTarget2) hipPos2++;
+        if (hipPos2 > hipTarget2) hipPos2--;
+
+        if (kneePos2 < kneeTarget2) kneePos2++;
+        if (kneePos2 > kneeTarget2) kneePos2--;
+
+        hip1.write(hipPos1);
+        knee1.write(kneePos1);
+
+        hip2.write(hipPos2);
+        knee2.write(kneePos2);
+
+        delay(STEP_DELAY);
+    }
+}
 void walkCycle()
 {
-  //-----------------------------------
-  // Front Left
-  //-----------------------------------
-  moveLeg(hipFL,kneeFL,
-          hipFLPos,kneeFLPos,
-          hipFLPos,KNEE_UP);
+    //===========================
+    // Phase 1
+    // Front Left + Back Right
+    //===========================
 
-  moveLeg(hipFL,kneeFL,
-          hipFLPos,kneeFLPos,
-          HIP_FORWARD,KNEE_UP);
+    // Lift both legs
+    moveTwoLegs(
+        hipFL, kneeFL, hipFLPos, kneeFLPos, hipFLPos, KNEE_UP,
+        hipBR, kneeBR, hipBRPos, kneeBRPos, hipBRPos, KNEE_UP);
 
-  moveLeg(hipFL,kneeFL,
-          hipFLPos,kneeFLPos,
-          HIP_FORWARD,KNEE_DOWN);
+    // Swing forward
+    moveTwoLegs(
+        hipFL, kneeFL, hipFLPos, kneeFLPos, HIP_LEFT_FORWARD, KNEE_UP,
+        hipBR, kneeBR, hipBRPos, kneeBRPos, HIP_RIGHT_FORWARD, KNEE_UP);
 
-  moveLeg(hipFL,kneeFL,
-          hipFLPos,kneeFLPos,
-          90,KNEE_DOWN);
+    // Place on ground
+    moveTwoLegs(
+        hipFL, kneeFL, hipFLPos, kneeFLPos, HIP_LEFT_FORWARD, KNEE_DOWN,
+        hipBR, kneeBR, hipBRPos, kneeBRPos, HIP_RIGHT_FORWARD, KNEE_DOWN);
 
-  //-----------------------------------
-  // Back Right
-  //-----------------------------------
-  moveLeg(hipBR,kneeBR,
-          hipBRPos,kneeBRPos,
-          hipBRPos,KNEE_UP);
+    //===========================
+    // Phase 2
+    // Front Right + Back Left
+    //===========================
 
-  moveLeg(hipBR,kneeBR,
-          hipBRPos,kneeBRPos,
-          HIP_BACK,KNEE_UP);
+    moveTwoLegs(
+        hipFR, kneeFR, hipFRPos, kneeFRPos, hipFRPos, KNEE_UP,
+        hipBL, kneeBL, hipBLPos, kneeBLPos, hipBLPos, KNEE_UP);
 
-  moveLeg(hipBR,kneeBR,
-          hipBRPos,kneeBRPos,
-          HIP_BACK,KNEE_DOWN);
+    moveTwoLegs(
+        hipFR, kneeFR, hipFRPos, kneeFRPos, HIP_RIGHT_FORWARD, KNEE_UP,
+        hipBL, kneeBL, hipBLPos, kneeBLPos, HIP_LEFT_FORWARD, KNEE_UP);
 
-  moveLeg(hipBR,kneeBR,
-          hipBRPos,kneeBRPos,
-          90,KNEE_DOWN);
+    moveTwoLegs(
+        hipFR, kneeFR, hipFRPos, kneeFRPos, HIP_RIGHT_FORWARD, KNEE_DOWN,
+        hipBL, kneeBL, hipBLPos, kneeBLPos, HIP_LEFT_FORWARD, KNEE_DOWN);
 
-  //-----------------------------------
-  // Front Right
-  //-----------------------------------
-  moveLeg(hipFR,kneeFR,
-          hipFRPos,kneeFRPos,
-          hipFRPos,KNEE_UP);
+    //===========================
+    // Return to neutral
+    //===========================
 
-  moveLeg(hipFR,kneeFR,
-          hipFRPos,kneeFRPos,
-          HIP_BACK,KNEE_UP);
+    moveTwoLegs(
+        hipFL, kneeFL, hipFLPos, kneeFLPos, 90, KNEE_DOWN,
+        hipBR, kneeBR, hipBRPos, kneeBRPos, 90, KNEE_DOWN);
 
-  moveLeg(hipFR,kneeFR,
-          hipFRPos,kneeFRPos,
-          HIP_BACK,KNEE_DOWN);
-
-  moveLeg(hipFR,kneeFR,
-          hipFRPos,kneeFRPos,
-          90,KNEE_DOWN);
-
-  //-----------------------------------
-  // Back Left
-  //-----------------------------------
-  moveLeg(hipBL,kneeBL,
-          hipBLPos,kneeBLPos,
-          hipBLPos,KNEE_UP);
-
-  moveLeg(hipBL,kneeBL,
-          hipBLPos,kneeBLPos,
-          HIP_FORWARD,KNEE_UP);
-
-  moveLeg(hipBL,kneeBL,
-          hipBLPos,kneeBLPos,
-          HIP_FORWARD,KNEE_DOWN);
-
-  moveLeg(hipBL,kneeBL,
-          hipBLPos,kneeBLPos,
-          90,KNEE_DOWN);
+    moveTwoLegs(
+        hipFR, kneeFR, hipFRPos, kneeFRPos, 90, KNEE_DOWN,
+        hipBL, kneeBL, hipBLPos, kneeBLPos, 90, KNEE_DOWN);
 }
-
 //------------- Stand Pose -------------//
 void standPose()
 {
@@ -245,14 +258,17 @@ void sitPose()
 
 void walkForward()
 {
-  standPose();
+    // If the robot is sitting, stand up smoothly.
+    standPose();
 
-  for(int i=0;i<5;i++)
-  {
-    walkCycle();
-  }
+    // Walk forward.
+    for (int i = 0; i < 5; i++)
+    {
+        walkCycle();
+    }
 
-  standPose();
+    // Finish in standing position.
+    standPose();
 }
 
 //------------- Web Page ---------------//
@@ -292,16 +308,16 @@ void setup()
   kneeBL.attach(KNEE_BL_PIN);
   kneeBR.attach(KNEE_BR_PIN);
 
-  // Start in sit position
-  hipFL.write(140);
-  hipFR.write(50);
-  hipBL.write(140);
-  hipBR.write(50);
+// Start in stand position
+hipFL.write(90);
+hipFR.write(90);
+hipBL.write(90);
+hipBR.write(90);
 
-  kneeFL.write(140);
-  kneeFR.write(50);
-  kneeBL.write(140);
-  kneeBR.write(50);
+kneeFL.write(90);
+kneeFR.write(90);
+kneeBL.write(90);
+kneeBR.write(90);
 
   WiFi.beginAP(ssid, pass);
 
