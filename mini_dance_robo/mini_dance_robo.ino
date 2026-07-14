@@ -2,8 +2,8 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
-const char* AP_SSID     = "Telezer_J1";
-const char* AP_PASSWORD = "Telezer12";   // must be >= 8 characters
+const char* AP_SSID     = "mini dancing robo";
+const char* AP_PASSWORD = "87654321";   // must be >= 8 characters
 
 WebServer server(80);
 
