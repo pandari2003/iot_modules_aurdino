@@ -69,16 +69,6 @@ void displayText(const char *text) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
 /**************** SET ALL SERVOS TO 90° ****************/
 void Set() {
 
