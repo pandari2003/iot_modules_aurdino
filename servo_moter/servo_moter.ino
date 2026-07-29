@@ -1,15 +1,24 @@
-#include <ESP32Servo.h>
+#include <Servo.h>
 
 Servo myServo;
+int pos = 0;
 
 void setup() {
-  myServo.attach(4);    // Servo signal connected to Digital Pin 9
+  myServo.attach(9);
 }
 
 void loop() {
-  myServo.write(0);     // Move to 0°
-  delay(500);
-
-  myServo.write(90);    // Move to 90°
-  delay(500);
-} 
+  for (pos = 10; pos <= 30; pos += 1) { 
+    myServo.write(pos);              
+    delay(50);
+  }
+  
+  delay(1000);
+  
+  for (pos = 30; pos >= 10; pos -= 1) { 
+    myServo.write(pos);              
+    delay(50);
+  }
+  
+  delay(1000);
+}
