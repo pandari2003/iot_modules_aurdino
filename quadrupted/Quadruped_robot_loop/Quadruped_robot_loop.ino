@@ -1,55 +1,55 @@
 #include <Servo.h>
 
-Servo servoB1;
-Servo servoB2;
-Servo servoB3;
-Servo servoB4;
+Servo servoBa1;
+Servo servoBa2;
+Servo servoBa3;
+Servo servoBa4;
 
-Servo servoH1;
-Servo servoH2;
-Servo servoH3;
-Servo servoH4;
+Servo servoHa1;
+Servo servoHa2;
+Servo servoHa3;
+Servo servoHa4;
 
-Servo servoKN1;
-Servo servoKN2;
-Servo servoKN3;
-Servo servoKN4;
+Servo servoKNa1;
+Servo servoKNa2;
+Servo servoKNa3;
+Servo servoKNa4;
 
-const int servoB1pin = 2;  //front right (servo 1)
-const int servoB2pin = 3;  //back right (servo 2)
-const int servoB3pin = 4;  //front left (servo 4)
-const int servoB4pin = 5;  //back left (servo 3)
+const int servoBa1pin = 2;   //front right
+const int servoBa2pin = 5;   //front left
+const int servoBa3pin = 8;   //back right
+const int servoBa4pin = 11;  //back left
 
-const int servoH1Pin = 6;  // back right (servo 8)
-const int servoH2Pin = 7;  // Front Right (servo 5)
-const int servoH3Pin = 8;  // back Left(servo 7)
-const int servoH4Pin = 9;  // front left (servo 6)
+const int servoHa1Pin = 3;   // Front Right
+const int servoHa2Pin = 6;   // front left
+const int servoHa3Pin = 9;   // back right
+const int servoHa4Pin = 12;  // back Left
 
-const int servoKN1Pin = 10;  // back right (servo 12)
-const int servoKN2Pin = 11;  // Front Right (servo 9)
-const int servoKN3Pin = 12;  // back Left (servo 11)
-const int servoKN4Pin = 13;  // front left (servo 10)
+const int servoKNa1Pin = 4;   // Front Right
+const int servoKNa2Pin = 7;   // front left
+const int servoKNa3Pin = 10;  // back right
+const int servoKNa4Pin = 13;  // back Left
 
-/**************** Set ALL SERVOS TO 90° ****************/
+/**************** SET ALL SERVOS TO 90° ****************/
 void Set() {
 
   // Body servos
-  servoB1.write(90);
-  servoB2.write(90);
-  servoB3.write(90);
-  servoB4.write(90);
+  servoBa1.write(90);
+  servoBa3.write(90);
+  servoBa2.write(90);
+  servoBa4.write(90);
 
   // Hip servos
-  servoH1.write(90);
-  servoH2.write(90);
-  servoH3.write(90);
-  servoH4.write(90);
+  servoHa3.write(90);
+  servoHa1.write(90);
+  servoHa4.write(90);
+  servoHa2.write(90);
 
   // Knee servos
-  servoKN1.write(90);
-  servoKN2.write(90);
-  servoKN3.write(90);
-  servoKN4.write(90);
+  servoKNa3.write(90);
+  servoKNa1.write(90);
+  servoKNa4.write(90);
+  servoKNa2.write(90);
 
   delay(500);
 }
@@ -58,16 +58,16 @@ void Set() {
 void Sit() {
   for (int i = 90; i >= 0; i--) {
     // Left pair
-    servoH2.write(i);
-    servoH3.write(i);
-    servoKN2.write(i - 45);
-    servoKN3.write(i - 45);
+    servoHa1.write(i);
+    servoHa4.write(i);
+    servoKNa1.write(i - 45);
+    servoKNa4.write(i - 45);
 
     // Right pair
-    servoH1.write(180 - i);
-    servoH4.write(180 - i);
-    servoKN1.write(230 - i);
-    servoKN4.write(230 - i);
+    servoHa3.write(180 - i);
+    servoHa2.write(180 - i);
+    servoKNa3.write(230 - i);
+    servoKNa2.write(230 - i);
 
     delay(80);  // Same speed as Stand
   }
@@ -79,81 +79,91 @@ void Sit() {
 void Stand() {
   for (int i = 0; i <= 90; i++) {
     // Left pair
-    servoH2.write(i);
-    servoH3.write(i);
-    servoKN2.write(i - 45);
-    servoKN3.write(i - 45);
+    servoHa1.write(i);
+    servoHa4.write(i);
+    servoKNa1.write(i - 45);
+    servoKNa4.write(i - 45);
 
     // Right pair
-    servoH1.write(180 - i);
-    servoH4.write(180 - i);
-    servoKN1.write(230 - i);
-    servoKN4.write(230 - i);
+    servoHa3.write(180 - i);
+    servoHa2.write(180 - i);
+    servoKNa3.write(230 - i);
+    servoKNa2.write(230 - i);
 
     delay(50);  // Adjust speed here
   }
 
   delay(50);
+  Set();
 }
+
 /**************** walk Forward ******************/
 void walkForward() {
   // Repeat walking cycle
   for (int step = 0; step < 10; step++) {
+ //
     //---------------- STEP 1 ----------------//
     for (int i = 90; i >= 70; i--) {
-      servoH1.write(i);
-      servoH3.write(i);
-      servoH2.write(180 - i);
-      servoH4.write(180 - i);
+   //
+      servoHa3.write(i);
+      servoHa4.write(i);
+      servoHa1.write(180 - i);
+      servoHa2.write(180 - i);
 
       delay(50);
     }
 
     // Lift Legs 1 & 4
     for (int k = 90; k >= 70; k--) {
-      servoKN1.write(k);
-      servoKN3.write(k);
+   //
+      servoKNa3.write(k);
+      servoKNa4.write(k);
       delay(50);
     }
 
     // Lower Legs 1 & 4
     for (int k = 70; k <= 90; k++) {
-      servoKN1.write(k);
-      servoKN3.write(k);
+   //
+      servoKNa3.write(k);
+      servoKNa4.write(k);
       delay(50);
     }
 
     //---------------- STEP 2 ----------------//
     for (int i = 70; i <= 110; i++) {
-      servoH1.write(i);
-      servoH3.write(i);
-      servoH2.write(180 - i);
-      servoH4.write(180 - i);
+   //
+      servoHa3.write(i);
+      servoHa4.write(i);
+      servoHa1.write(180 - i);
+      servoHa2.write(180 - i);
 
       delay(50);
     }
 
     // Lift Legs 2 & 3
     for (int k = 90; k >= 70; k--) {
-      servoKN2.write(k);
-      servoKN4.write(k);
+   //
+      servoKNa1.write(k);
+      servoKNa2.write(k);
       delay(50);
     }
 
     // Lower Legs 2 & 3
     for (int k = 70; k <= 90; k++) {
-      servoKN2.write(k);
-      servoKN4.write(k);
+   //
+      servoKNa1.write(k);
+      servoKNa2.write(k);
       delay(50);
     }
 
     //---------------- Return Center ----------------//
     for (int i = 110; i >= 90; i--) {
-      servoH1.write(i);
-      servoH3.write(i);
+   //
+      servoHa3.write(i);
+      servoHa4.write(i);
 
-      servoH2.write(180 - i);
-      servoH4.write(180 - i);
+      servoHa1.write(180 - i);
+      servoHa2.write(180 - i);
 
       delay(50);
     }
@@ -164,64 +174,72 @@ void walkForward() {
 void walkBackward() {
 
   for (int step = 0; step < 10; step++) {
+ //
 
     //---------------- STEP 1 : Shift Hips ----------------//
     for (int i = 90; i <= 110; i++) {
-      servoH1.write(i);
-      servoH3.write(i);
+   //
+      servoHa3.write(i);
+      servoHa4.write(i);
 
-      servoH2.write(180 - i);
-      servoH4.write(180 - i);
+      servoHa1.write(180 - i);
+      servoHa2.write(180 - i);
 
       delay(50);
     }
 
     //---------------- Lift Legs 1 & 3 ----------------//
     for (int k = 90; k <= 110; k++) {
-      servoKN1.write(k);
-      servoKN3.write(k);
+   //
+      servoKNa3.write(k);
+      servoKNa4.write(k);
       delay(50);
     }
 
     //---------------- Lower Legs 1 & 3 ----------------//
     for (int k = 110; k >= 90; k--) {
-      servoKN1.write(k);
-      servoKN3.write(k);
+   //
+      servoKNa3.write(k);
+      servoKNa4.write(k);
       delay(50);
     }
 
     //---------------- STEP 2 : Shift Hips ----------------//
     for (int i = 110; i >= 70; i--) {
-      servoH1.write(i);
-      servoH3.write(i);
+   //
+      servoHa3.write(i);
+      servoHa4.write(i);
 
-      servoH2.write(180 - i);
-      servoH4.write(180 - i);
+      servoHa1.write(180 - i);
+      servoHa2.write(180 - i);
 
       delay(50);
     }
 
     //---------------- Lift Legs 2 & 4 ----------------//
     for (int k = 90; k <= 110; k++) {
-      servoKN2.write(k);
-      servoKN4.write(k);
+   //
+      servoKNa1.write(k);
+      servoKNa2.write(k);
       delay(50);
     }
 
     //---------------- Lower Legs 2 & 4 ----------------//
     for (int k = 110; k >= 90; k--) {
-      servoKN2.write(k);
-      servoKN4.write(k);
+   //
+      servoKNa1.write(k);
+      servoKNa2.write(k);
       delay(50);
     }
 
     //---------------- Return Center ----------------//
     for (int i = 70; i <= 90; i++) {
-      servoH1.write(i);
-      servoH3.write(i);
+   //
+      servoHa3.write(i);
+      servoHa4.write(i);
 
-      servoH2.write(180 - i);
-      servoH4.write(180 - i);
+      servoHa1.write(180 - i);
+      servoHa2.write(180 - i);
 
       delay(50);
     }
@@ -231,22 +249,25 @@ void walkBackward() {
 /*****************right move**********************/
 void Rightmove() {
   for (int step = 0; step < 5; step++) {
+ //
     //---------------- STEP 1 ----------------//
     for (int i = 70; i <= 110; i++) {
-      servoB1.write(90);
-      servoB3.write(i);
-      servoKN2.write(i);
-      servoB2.write(180 - i);
-      servoB4.write(90);
+   //
+      servoBa1.write(90);
+      servoBa2.write(i);
+      servoKNa1.write(i);
+      servoBa3.write(180 - i);
+      servoBa4.write(90);
 
       delay(50);
     }
     for (int i = 110; i >= 70; i--) {
-      servoB1.write(90);
-      servoB3.write(i);
-      servoKN2.write(i);
-      servoB2.write(180 - i);
-      servoB4.write(90);
+   //
+      servoBa1.write(90);
+      servoBa2.write(i);
+      servoKNa1.write(i);
+      servoBa3.write(180 - i);
+      servoBa4.write(90);
 
       delay(50);
     }
@@ -257,24 +278,27 @@ void Rightmove() {
 /************************left move***************/
 void Leftmove() {
   for (int step = 0; step < 5; step++) {
+ //
     //---------------- STEP 1 ----------------//
     for (int i = 110; i >= 70; i--) {
-      servoB3.write(90);
-      servoB1.write(i);
-      servoKN4.write(i);
-      servoB4.write(180 - i);
-      servoB2.write(90);
+   //
+      servoBa2.write(90);
+      servoBa1.write(i);
+      servoKNa2.write(i);
+      servoBa4.write(180 - i);
+      servoBa3.write(90);
 
       delay(80);
     }
     delay(40);
 
     for (int i = 70; i <= 110; i++) {
-      servoB3.write(90);
-      servoB1.write(i);
-      servoKN1.write(i);
-      servoB4.write(180 - i);
-      servoB2.write(90);
+   //
+      servoBa2.write(90);
+      servoBa1.write(i);
+      servoKNa3.write(i);
+      servoBa4.write(180 - i);
+      servoBa3.write(90);
 
       delay(80);
     }
@@ -284,54 +308,56 @@ void Leftmove() {
 /*******************hand shake*****************/
 void Handshake() {
 
-  servoB2.write(120);
-  servoB3.write(60);
-  servoB4.write(90);
+  servoBa3.write(90);
+  servoBa2.write(90);
+  servoBa4.write(90);
 
-  servoH1.write(80);
-  servoH2.write(150);
-  servoH3.write(130);
-  servoH4.write(80);
+  servoHa3.write(90);
+  servoHa4.write(90);
+  servoHa2.write(90);
 
-  servoKN1.write(90);
-  servoKN3.write(90);
-  servoKN4.write(90);
+  servoKNa3.write(90);
+  servoKNa4.write(90);
+  servoKNa2.write(90);
 
-  for (int i = 0; i < 20; i++) {
-
-    servoB1.write(70);
+  for (int i = 0; i < 2; i++) {
+ //
+    servoHa1.write(150);
+    servoBa1.write(85);
     delay(800);
 
-    servoB1.write(80);
+    servoBa1.write(95);
     delay(800);
 
-    servoKN2.write(40);
+    servoKNa1.write(40);
     delay(200);
 
-    servoKN2.write(70);
+    servoKNa1.write(70);
     delay(200);
+    servoHa1.write(90);
   }
   delay(500);
+  Set();
 }
 
 /***********************Setup************************/
 void setup() {
   Serial.begin(115200);
 
-  servoH1.attach(servoH1Pin);
-  servoH2.attach(servoH2Pin);
-  servoH3.attach(servoH3Pin);
-  servoH4.attach(servoH4Pin);
+  servoHa3.attach(servoHa3Pin);
+  servoHa1.attach(servoHa1Pin);
+  servoHa4.attach(servoHa4Pin);
+  servoHa2.attach(servoHa2Pin);
 
-  servoKN1.attach(servoKN1Pin);
-  servoKN2.attach(servoKN2Pin);
-  servoKN3.attach(servoKN3Pin);
-  servoKN4.attach(servoKN4Pin);
+  servoKNa3.attach(servoKNa3Pin);
+  servoKNa1.attach(servoKNa1Pin);
+  servoKNa4.attach(servoKNa4Pin);
+  servoKNa2.attach(servoKNa2Pin);
 
-  servoB1.attach(servoB1pin);
-  servoB2.attach(servoB2pin);
-  servoB3.attach(servoB3pin);
-  servoB4.attach(servoB4pin);
+  servoBa1.attach(servoBa1pin);
+  servoBa3.attach(servoBa3pin);
+  servoBa2.attach(servoBa2pin);
+  servoBa4.attach(servoBa4pin);
 
   Serial.println("Quadruped Robot Started");
 }

@@ -11,7 +11,7 @@ const char* ssid = "Telezer_J";
 const char* password = "Telezer12";
 
 // Change to Arduino R4 IP
-String robotIP = "192.168.1.25";
+String robotIP = "192.168.29.244";
 
 #define BTN_FORWARD 13
 #define BTN_BACKWARD 12
