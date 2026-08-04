@@ -158,219 +158,118 @@ void checkStop() {
   client.stop();
 }
 
-/**************** walk Forward ******************/
-void walkBackward() {
-
-  for (int stp = 0; stp < 20; stp++) {
-    checkStop();
-
-    if (stopMotion) {
-      Set();
-      stopMotion = false;
-      return;
-    }
-    //===========================
-    // Pair 1 : Leg1 & Leg4
-    //===========================
-
-    for (int i = 0; i <= 20; i++) {
-      checkStop();
-
-      if (stopMotion) {
-        Set();
-        stopMotion = false;
-        return;
-      }
-      // Lift Pair 1
-      servoKNa1.write(90 - i);
-      servoKNa4.write(90 - i);
-
-      // Swing Pair 1 backward
-      servoHa1.write(90 - i);
-      servoHa2.write(90 - i);
-
-      // Pair 2 pushes forward
-      servoHa3.write(90 + i);
-      servoHa4.write(90 + i);
-
-      delay(35);
-    }
-
-    // Lower Pair 1
-    for (int i = 20; i >= 0; i--) {
-      checkStop();
-
-      if (stopMotion) {
-        Set();
-        stopMotion = false;
-        return;
-      }
-      servoKNa1.write(90 - i);
-      servoKNa4.write(90 - i);
-
-      servoHa1.write(70 + (20 - i));
-      servoHa2.write(70 + (20 - i));
-
-      servoHa3.write(110 - (20 - i));
-      servoHa4.write(110 - (20 - i));
-
-      delay(35);
-    }
-
-    //===========================
-    // Pair 2 : Leg2 & Leg3
-    //===========================
-
-    for (int i = 0; i <= 20; i++) {
-      checkStop();
-
-      if (stopMotion) {
-        Set();
-        stopMotion = false;
-        return;
-      }
-      // Lift Pair 2
-      servoKNa2.write(90 - i);
-      servoKNa3.write(90 - i);
-
-      // Swing Pair 2 backward
-      servoHa3.write(90 - i);
-      servoHa4.write(90 - i);
-
-      // Pair 1 pushes forward
-      servoHa1.write(90 + i);
-      servoHa2.write(90 + i);
-
-      delay(35);
-    }
-
-    // Lower Pair 2
-    for (int i = 20; i >= 0; i--) {
-      checkStop();
-
-      if (stopMotion) {
-        Set();
-        stopMotion = false;
-        return;
-      }
-      servoKNa2.write(90 - i);
-      servoKNa3.write(90 - i);
-
-      servoHa3.write(70 + (20 - i));
-      servoHa4.write(70 + (20 - i));
-
-      servoHa1.write(110 - (20 - i));
-      servoHa2.write(110 - (20 - i));
-
-      delay(35);
-    }
-  }
-}
-/**************** BACKWARD ****************/
+/**************** REDUCED ANGLE & ULTRA-SMOOTH WALK FORWARD ******************/
 void walkForward() {
-
-  for (int stp = 0; stp < 20; stp++) {
-    checkStop();
-
-    if (stopMotion) {
-      Set();
-      stopMotion = false;
-      return;
-    }
-    //===========================
-    // Pair 1 : Leg1 & Leg4
-    //===========================
-
-    for (int i = 0; i <= 20; i++) {
-      checkStop();
-
-      if (stopMotion) {
-        Set();
-        stopMotion = false;
-        return;
-      }
-      // Lift Pair 1
-      servoKNa1.write(90 - i);
-      servoKNa4.write(90 - i);
-
-      // Reverse hip swing
-      servoHa1.write(90 + i);
-      servoHa2.write(90 + i);
-
-      servoHa3.write(90 - i);
-      servoHa4.write(90 - i);
-
-      delay(35);
+  for (int step = 0; step < 10; step++) {
+    
+    //---------------- STEP 1: Micro-Lift Pair A & Micro-Swing Hips ----------------//
+    for (int i = 0; i <= microSteps; i++) {
+      int progressKN = map(i, 0, microSteps, 0, liftAngle);
+      int progressHA = map(i, 0, microSteps, 0, swingAngle);
+      
+      // Smooth vertical lift (Front Right + Back Left)
+      servoKNa1.write(90 - progressKN); 
+      servoKNa4.write(90 - progressKN);
+      
+      // Smooth micro hip movement
+      servoHa1.write(90 + progressHA); 
+      servoHa4.write(90 - progressHA); 
+      servoHa2.write(90 + progressHA); 
+      servoHa3.write(90 - progressHA); 
+      
+      delay(stepDelay);
     }
 
-    // Pair 1 touches ground and pushes body backward
-    for (int i = 0; i <= 20; i++) {
-      checkStop();
-
-      if (stopMotion) {
-        Set();
-        stopMotion = false;
-        return;
-      }
-      servoKNa1.write(70 + i);
-      servoKNa4.write(70 + i);
-
-      servoHa1.write(110 - i);
-      servoHa2.write(110 - i);
-
-      servoHa3.write(70 + i);
-      servoHa4.write(70 + i);
-
-      delay(35);
+    //---------------- STEP 2: Ground Pair A Smoothly ----------------//
+    for (int i = microSteps; i >= 0; i--) {
+      int progressKN = map(i, 0, microSteps, 0, liftAngle);
+      servoKNa1.write(90 - progressKN);
+      servoKNa4.write(90 - progressKN);
+      delay(stepDelay);
     }
 
-    //===========================
-    // Pair 2 : Leg2 & Leg3
-    //===========================
-
-    for (int i = 0; i <= 20; i++) {
-      checkStop();
-
-      if (stopMotion) {
-        Set();
-        stopMotion = false;
-        return;
-      }
-      // Lift Pair 2
-      servoKNa2.write(90 - i);
-      servoKNa3.write(90 - i);
-
-      // Reverse hip swing
-      servoHa3.write(90 + i);
-      servoHa4.write(90 + i);
-
-      servoHa1.write(90 - i);
-      servoHa2.write(90 - i);
-
-      delay(35);
+    //---------------- STEP 3: Micro-Lift Pair B & Micro-Swing Hips Opposite ----------------//
+    for (int i = 0; i <= microSteps; i++) {
+      int progressKN = map(i, 0, microSteps, 0, liftAngle);
+      int progressHA = map(i, 0, microSteps, 0, swingAngle);
+      
+      // Smooth vertical lift (Front Left + Back Right)
+      servoKNa2.write(90 - progressKN); 
+      servoKNa3.write(90 - progressKN);
+      
+      // Smooth micro hip movement opposite direction
+      servoHa2.write(90 - progressHA); 
+      servoHa3.write(90 + progressHA); 
+      servoHa1.write(90 - progressHA); 
+      servoHa4.write(90 + progressHA); 
+      
+      delay(stepDelay);
     }
 
-    // Pair 2 touches ground and pushes body backward
-    for (int i = 0; i <= 20; i++) {
-      checkStop();
-
-      if (stopMotion) {
-        Set();
-        stopMotion = false;
-        return;
-      }
-      servoKNa2.write(70 + i);
-      servoKNa3.write(70 + i);
-
-      servoHa3.write(110 - i);
-      servoHa4.write(110 - i);
-
-      servoHa1.write(70 + i);
-      servoHa2.write(70 + i);
-
-      delay(35);
+    //---------------- STEP 4: Ground Pair B Smoothly ----------------//
+    for (int i = microSteps; i >= 0; i--) {
+      int progressKN = map(i, 0, microSteps, 0, liftAngle);
+      servoKNa2.write(90 - progressKN);
+      servoKNa3.write(90 - progressKN);
+      delay(stepDelay);
     }
   }
+  delay(30);
+}
+
+/**************** REDUCED ANGLE & ULTRA-SMOOTH WALK BACKWARD ****************/
+void walkBackward() {
+  for (int step = 0; step < 10; step++) {
+    
+    //---------------- STEP 1: Micro-Lift Pair A & Micro-Swing Hips Backwards ----------------//
+    for (int i = 0; i <= microSteps; i++) {
+      int progressKN = map(i, 0, microSteps, 0, liftAngle);
+      int progressHA = map(i, 0, microSteps, 0, swingAngle);
+      
+      servoKNa1.write(90 - progressKN); 
+      servoKNa4.write(90 - progressKN);
+      
+      servoHa1.write(90 - progressHA); 
+      servoHa4.write(90 + progressHA); 
+      servoHa2.write(90 - progressHA); 
+      servoHa3.write(90 + progressHA); 
+      
+      delay(stepDelay);
+    }
+
+    //---------------- STEP 2: Ground Pair A Smoothly ----------------//
+    for (int i = microSteps; i >= 0; i--) {
+      int progressKN = map(i, 0, microSteps, 0, liftAngle);
+      servoKNa1.write(90 - progressKN);
+      servoKNa4.write(90 - progressKN);
+      delay(stepDelay);
+    }
+
+    //---------------- STEP 3: Micro-Lift Pair B & Micro-Swing Hips Opposite Backwards ----------------//
+    for (int i = 0; i <= microSteps; i++) {
+      int progressKN = map(i, 0, microSteps, 0, liftAngle);
+      int progressHA = map(i, 0, microSteps, 0, swingAngle);
+      
+      servoKNa2.write(90 - progressKN); 
+      servoKNa3.write(90 - progressKN);
+      
+      servoHa2.write(90 + progressHA); 
+      servoHa3.write(90 - progressHA); 
+      servoHa1.write(90 + progressHA); 
+      servoHa4.write(90 - progressHA); 
+      
+      delay(stepDelay);
+    }
+
+    //---------------- STEP 4: Ground Pair B Smoothly ----------------//
+    for (int i = microSteps; i >= 0; i--) {
+      int progressKN = map(i, 0, microSteps, 0, liftAngle);
+      servoKNa2.write(90 - progressKN);
+      servoKNa3.write(90 - progressKN);
+      delay(stepDelay);
+    }
+  }
+  delay(30);
 }
 /*****************right move**********************/
 void Rightmove() {
@@ -507,7 +406,7 @@ void Handshake() {
   delay(500);
   Set();
 }
-/*******************setup()****************************/
+/*******************setup()*******************************/
 
 void setup() {
   Serial.begin(115200);
@@ -565,10 +464,10 @@ void loop() {
     client.flush();
 
     if (request.indexOf("GET /forward") >= 0)
-      walkBackward();
+      walkForward();
 
     else if (request.indexOf("GET /backward") >= 0)
-      walkForward();
+      walkBackward();
 
     else if (request.indexOf("GET /left") >= 0)
       Leftmove();
@@ -760,12 +659,12 @@ font-size:18px;
 <button class="stand">STAND</button>
 </a>
 
-<a href="/backward">
-<button class="backward">BACKWARD</button>
+<a href="/forward">
+<button class="forward">FORWARD</button>
 </a>
 
-<a href="/forward">
-<button class="forward"> FORWARD</button>
+<a href="/backward">
+<button class="backward"> BACKWARD</button>
 </a>
 
 <a href="/left">
