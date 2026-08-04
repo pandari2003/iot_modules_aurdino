@@ -98,7 +98,7 @@ void Stand() {
   Set();
 }
 
-void walkBackward() {
+void walkForward() {
 
   for (int stp = 0; stp < 20; stp++) {
 
@@ -175,7 +175,7 @@ void walkBackward() {
 }
 
 
-void walkForward() {
+void walkBackward() {
 
   for (int stp = 0; stp < 20; stp++) {
 

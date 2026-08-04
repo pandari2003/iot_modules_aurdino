@@ -159,7 +159,7 @@ void checkStop() {
 }
 
 /**************** walk Forward ******************/
-void walkForward() {
+void walkBackward() {
 
   for (int stp = 0; stp < 20; stp++) {
     checkStop();
@@ -267,7 +267,7 @@ void walkForward() {
   }
 }
 /**************** BACKWARD ****************/
-void walkBackward() {
+void walkForward() {
 
   for (int stp = 0; stp < 20; stp++) {
     checkStop();
@@ -565,10 +565,10 @@ void loop() {
     client.flush();
 
     if (request.indexOf("GET /forward") >= 0)
-      walkForward();
+      walkBackward();
 
     else if (request.indexOf("GET /backward") >= 0)
-      walkBackward();
+      walkForward();
 
     else if (request.indexOf("GET /left") >= 0)
       Leftmove();
@@ -760,12 +760,12 @@ font-size:18px;
 <button class="stand">STAND</button>
 </a>
 
-<a href="/forward">
-<button class="forward">FORWARD</button>
+<a href="/backward">
+<button class="backward">BACKWARD</button>
 </a>
 
-<a href="/backward">
-<button class="backward"> BACKWARD</button>
+<a href="/forward">
+<button class="forward"> FORWARD</button>
 </a>
 
 <a href="/left">
