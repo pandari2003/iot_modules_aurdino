@@ -82,20 +82,20 @@ void Stand() {
     servoHa1.write(i);
     servoHa4.write(i);
 
-    servoKNa1.write(i - 45);  // 0 -> 45
+    servoKNa1.write(i - 45);     // 0 -> 45
     servoKNa4.write(i - 45);
 
     // Right pair
-    servoHa3.write(180 - i);  // 135 -> 90
+    servoHa3.write(180 - i);     // 135 -> 90
     servoHa2.write(180 - i);
 
-    servoKNa3.write(230 - i);  // 180 -> 140
+    servoKNa3.write(230 - i);    // 180 -> 140
     servoKNa2.write(230 - i);
 
     delay(80);
   }
 
-  Set();
+Set();
 }
 
 void walkBackward() {
@@ -177,7 +177,7 @@ void walkBackward() {
 
 void walkForward() {
 
-  for (int stp = 0; stp < 20; stp++) {
+  for(int stp=0; stp<20; stp++){
 
     //===========================
     // Pair 1 : Leg1 & Leg4
@@ -257,10 +257,10 @@ void walkForward() {
 /*****************right move**********************/
 void Rightmove() {
   for (int step = 0; step < 5; step++) {
-    //
+ //
     //---------------- STEP 1 ----------------//
     for (int i = 70; i <= 110; i++) {
-      //
+   //
       servoBa1.write(90);
       servoBa2.write(i);
       servoKNa1.write(i);
@@ -270,7 +270,7 @@ void Rightmove() {
       delay(50);
     }
     for (int i = 110; i >= 70; i--) {
-      //
+   //
       servoBa1.write(90);
       servoBa2.write(i);
       servoKNa1.write(i);
@@ -286,10 +286,10 @@ void Rightmove() {
 /************************left move***************/
 void Leftmove() {
   for (int step = 0; step < 5; step++) {
-    //
+ //
     //---------------- STEP 1 ----------------//
     for (int i = 110; i >= 70; i--) {
-      //
+   //
       servoBa2.write(90);
       servoBa1.write(i);
       servoKNa2.write(i);
@@ -301,7 +301,7 @@ void Leftmove() {
     delay(40);
 
     for (int i = 70; i <= 110; i++) {
-      //
+   //
       servoBa2.write(90);
       servoBa1.write(i);
       servoKNa3.write(i);
@@ -329,7 +329,7 @@ void Handshake() {
   servoKNa2.write(90);
 
   for (int i = 0; i < 2; i++) {
-    //
+ //
     servoHa1.write(150);
     servoBa1.write(85);
     delay(800);
@@ -371,47 +371,75 @@ void setup() {
 }
 
 
-void loop() {
+void loop(){
 
-  Set();
-  delay(10000);
+ // Set();
+//delay(10000);
 
-  Sit();
-  delay(10000);
+  //Sit();
+  //delay(10000);
+  
+  //Stand();
+  //delay(10000);
 
-  Stand();
-  delay(10000);
+ // Set();
+//delay(10000);
 
-  Set();
-  delay(10000);
+ //walkForward();
+  //delay(10000);
 
-  walkForward();
-  delay(10000);
+ // Set();
+//delay(10000);
 
-  Set();
-  delay(10000);
+ // walkBackward();
+  //delay(10000);
 
-  walkBackward();
-  delay(10000);
+ // Set();
+//delay(10000);
 
-  Set();
-  delay(10000);
+// Leftmove();
+  //delay(10000);
 
-  Leftmove();
-  delay(10000);
+ // Set();
+//delay(10000);
 
-  Set();
-  delay(10000);
+ //Rightmove();
+  //delay(10000);
 
-  Rightmove();
-  delay(10000);
+ // Set();
+//delay(10000);
 
-  Set();
-  delay(10000);
+ //Handshake();
+  //delay(10000);
 
-  Handshake();
-  delay(10000);
+   // Set();
+//delay(10000);
 
-  Set();
-  delay(10000);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
