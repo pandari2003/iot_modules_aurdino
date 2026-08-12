@@ -12,15 +12,15 @@ void setup()
 
 void loop()
 {
-  for (int angle = 0; angle <= 55; angle++)
+  for (int angle = 0; angle <= 57; angle++)
   {
     myServo.write(angle);
-    delay(500);
+    delay(300);
   }
 
-  for (int angle = 55; angle >= 0; angle--)
-  {//jjjjjj
+  for (int angle = 57; angle >= 0; angle--)
+  {
     myServo.write(angle);
-    delay(500);
+    delay(300);
   }
 }
