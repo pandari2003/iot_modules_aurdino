@@ -1,53 +1,33 @@
 /*
-Joystick AB
-Joystick AB	ESP32
-VCC------------	3.3V
-GND------------	GND
-VRx------------	GPIO 34
-VRy	------------GPIO 35
-
-Potentiometer 1
-Pot 1	ESP32
-Outer pin	------------3.3V
-Other outer------------ pin	GND
-Middle pin	v------------GPIO 32
-
-Joystick CD
-Joystick CD	ESP32
-VCC	------------3.3V
-GND	------------GND
-VRx	------------GPIO 33
-VRy	------------GPIO 25
-
-Potentiometer 2
-Pot 2	ESP32
-Outer pin------------	3.3V
-Other outer pin	GND
-Middle pin	------------GPIO 26
-
-Control button
-ESP32 GPIO 27 ───── BUTTON ───── GND
-
-*****ESP32 → E01-ML01DP5***
-E01-ML01DP5	ESP32
-VCC	------------3.3V
-GND	------------GND
-CE	------------GPIO 4
-CSN	------------GPIO 5
-SCK	------------GPIO 18
-MOSI------------	GPIO 23
-MISO	------------GPIO 19
+Arduino UNO	Device
+D2	Servo AY1
+D4	Servo BX1
+D6	Servo P1
+D7	Servo CY2
+D8	Servo DX2
+A2	Servo P2
+D9	E01 CE
+D10	E01 CSN
+D11	E01 MOSI
+D12	E01 MISO
+D13	E01 SCK
+D3	Motor 1 PWM
+A0	Motor 1 DIR
+D5	Motor 2 PWM
+A1	Motor 2 DIR
+A3	Indicator btn
 */
+
 #include <SPI.h>
 #include <RF24.h>
- 
-// NRF24 / E01 
 
-RF24 radio(4, 5);   // CE, CSN
+// NRF24 / E01-ML01DP5
+
+RF24 radio(4, 5);       // CE, CSN
 
 const byte address[6] = "REM01";
- 
-// INPUT PINS - ESP32 
+
+// INPUT PINS - ESP32
 
 // Joystick AB
 const int joystickABX = 34;
@@ -61,24 +41,29 @@ const int potPin2     = 26;
 
 // Control button
 const int controlButton = 27;
- 
-// SERVO ANGLES 
+
+// SERVO ANGLES
 
 int ABxAngle = 90;
 int AByAngle = 90;
 
 int CDxAngle = 90;
 int CDyAngle = 90;
- 
-// JOYSTICK SETTINGS 
+
+// DRIVING SPEED
+
+// Starts at 50%
+int speedValue = 50;
+
+// JOYSTICK SETTINGS
 
 const int center = 2048;
 const int deadZone = 200;
- 
-// DATA PACKET 
 
-struct ControlData {
+// DATA PACKET
 
+struct ControlData
+{
   byte ABxAngle;
   byte AByAngle;
 
@@ -91,11 +76,15 @@ struct ControlData {
 
   byte button;
 
+  // Driving data
+  byte driveSpeed;
+  byte driveX;
+  byte driveY;
 };
 
 ControlData data;
- 
-// JOYSTICK FUNCTION 
+
+// JOYSTICK SERVO FUNCTION
 
 void controlJoystick(int pin, int &angle)
 {
@@ -112,8 +101,8 @@ void controlJoystick(int pin, int &angle)
 
   angle = constrain(angle, 0, 180);
 }
- 
-// SETUP 
+
+// SETUP
 
 void setup()
 {
@@ -128,6 +117,7 @@ void setup()
   if (!radio.begin())
   {
     Serial.println("NRF24 NOT FOUND!");
+
     while (1);
   }
 
@@ -139,47 +129,48 @@ void setup()
 
   radio.stopListening();
 
+
   Serial.println("TRANSMITTER READY");
 }
- 
-// LOOP 
+
+// LOOP
 
 void loop()
 {
   int buttonState = digitalRead(controlButton);
- 
+
+  
   // SERVO MODE
-  // BUTTON ON 
+  // BUTTON ON  =
 
   if (buttonState == LOW)
-  {
-  
-    // JOYSTICK AB
-  
+  { 
+    // AB JOYSTICK 
+
     controlJoystick(joystickABX, ABxAngle);
     controlJoystick(joystickABY, AByAngle);
-  
-    // JOYSTICK CD
-  
+ 
+    // CD JOYSTICK 
+
     controlJoystick(joystickCDX, CDxAngle);
     controlJoystick(joystickCDY, CDyAngle);
-  
-    // POTENTIOMETER 1
-  
+
+    // POTENTIOMETER 1 
+
     int pot1Value = analogRead(potPin1);
 
     int pot1Angle =
       map(pot1Value, 0, 4095, 0, 180);
-  
-    // POTENTIOMETER 2
-  
+ 
+    // POTENTIOMETER 2 
+
     int pot2Value = analogRead(potPin2);
 
     int pot2Angle =
       map(pot2Value, 0, 4095, 0, 180);
-  
-    // CREATE PACKET
-  
+ 
+    // PACKET 
+
     data.ABxAngle = ABxAngle;
     data.AByAngle = AByAngle;
 
@@ -191,13 +182,13 @@ void loop()
     data.pot2Angle = pot2Angle;
 
     data.button = 1;
-  
-    // SEND
-  
+ 
+    // SEND 
+
     radio.write(&data, sizeof(data));
-  
-    // SERIAL
-  
+ 
+    // SERIAL 
+
     Serial.print("SERVO MODE | ");
 
     Serial.print("AB X: ");
@@ -218,63 +209,92 @@ void loop()
     Serial.print("  P2: ");
     Serial.println(pot2Angle);
   }
- 
+
   // DRIVING MODE
-  // BUTTON OFF 
+  // BUTTON OFF  =
 
   else
-  {
-  
-    // CREATE DRIVING PACKET
-  
-    data.button = 0;
-
-    // AB X joystick
+  { 
+    // READ JOYSTICKS 
 
     int abXValue = analogRead(joystickABX);
 
+    int cdXValue = analogRead(joystickCDX);
+
+    int cdYValue = analogRead(joystickCDY);
+
+  
+    // SPEED CONTROL
+    // AB X  
+
     if (abXValue > center + deadZone)
     {
-      data.ABxAngle = 1;
+      speedValue++;
     }
     else if (abXValue < center - deadZone)
     {
-      data.ABxAngle = 2;
-    }
-    else
-    {
-      data.ABxAngle = 0;
+      speedValue--;
     }
 
-    // CD X joystick
+    speedValue = constrain(speedValue, 0, 100);
 
-    int cdXValue = analogRead(joystickCDX);
+    // DRIVING DIRECTION  
+
+    // X direction
+    // 1 = forward
+    // 2 = backward
+    // 0 = center
 
     if (cdXValue > center + deadZone)
     {
-      data.CDxAngle = 1;
+      data.driveX = 1;
     }
     else if (cdXValue < center - deadZone)
     {
-      data.CDxAngle = 2;
+      data.driveX = 2;
     }
     else
     {
-      data.CDxAngle = 0;
+      data.driveX = 0;
     }
 
-    // Send driving command
+    // Y direction
+    // 1 = right
+    // 2 = left
+    // 0 = center
+
+    if (cdYValue > center + deadZone)
+    {
+      data.driveY = 1;
+    }
+    else if (cdYValue < center - deadZone)
+    {
+      data.driveY = 2;
+    }
+    else
+    {
+      data.driveY = 0;
+    }
+ 
+    // SEND DRIVING DATA 
+
+    data.button = 0;
+
+    data.driveSpeed = speedValue;
 
     radio.write(&data, sizeof(data));
 
-    Serial.print("DRIVING MODE | Motor 1: ");
+    // SERIAL 
 
-    Serial.print(data.ABxAngle);
+    Serial.print("DRIVING | Speed: ");
+    Serial.print(speedValue);
 
-    Serial.print("  Motor 2: ");
+    Serial.print("%  X: ");
+    Serial.print(data.driveX);
 
-    Serial.println(data.CDxAngle);
+    Serial.print("  Y: ");
+    Serial.println(data.driveY);
   }
 
-  delay(30);
+  delay(20);
 }

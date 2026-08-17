@@ -1,36 +1,51 @@
 /*
-Arduino UNO pin	Device
-D2------------	Servo AY1
-D3------------	Servo BX1
-D4------------	Servo P1
-D5------------	Servo CY2
-D6------------	Servo DX2
-D7------------	Servo P2
-D8------------	E01 CE
-D9------------	Indicator
-D10------------	E01 CSN
-D11------------	E01 MOSI
-D12------------	E01 MISO
-D13------------	E01 SCK
-A0------------	Motor 1 IN1
-A1------------	Motor 1 IN2
-A2------------	Motor 2 IN3
-A3------------	Motor 2 IN4
-A4------------	Available
-A5------------	Available
+Servos
+Servo AY1 signal → D2
+Servo BX1 signal → D4
+Servo P1  signal → D6
+
+Servo CY2 signal → D7
+Servo DX2 signal → D8
+Servo P2  signal → A2
+E01-ML01DP5
+E01 CE   → D9
+E01 CSN  → D10
+E01 MOSI → D11
+E01 MISO → D12
+E01 SCK  → D13
+
+E01 VCC  → 3.3V
+E01 GND  → GND
+DRV8833
+DRV8833 AIN1 → D3       ← Motor 1 PWM
+DRV8833 AIN2 → A0       ← Motor 1 direction
+
+DRV8833 BIN1 → D5       ← Motor 2 PWM
+DRV8833 BIN2 → A1       ← Motor 2 direction
+
+DRV8833 AOUT1/AOUT2 → Motor 1
+DRV8833 BOUT1/BOUT2 → Motor 2
+
+DRV8833 GND → Arduino GND
+DRV8833 VM  → Motor battery +
+
+Indicator:
+
+Arduino A3 → LED/resistor → GND
 */
+
 #include <SPI.h>
 #include <RF24.h>
 #include <Servo.h>
- 
-// NRF24 / E01
- 
-RF24 radio(8, 10);   // CE, CSN
+
+// NRF24 / E01-ML01DP5
+
+RF24 radio(9, 10);       // CE, CSN
 
 const byte address[6] = "REM01";
- 
+
 // SERVOS
- 
+
 Servo servoAY1;
 Servo servoBX1;
 Servo servoP1;
@@ -38,35 +53,43 @@ Servo servoP1;
 Servo servoCY2;
 Servo servoDX2;
 Servo servoP2;
- 
+
 // SERVO PINS
- 
-const int servoAY1Pin = 4;
-const int servoBX1Pin = 5;
+
+const int servoAY1Pin = 2;
+const int servoBX1Pin = 4;
 const int servoP1Pin  = 6;
 
-const int servoCY2Pin = 8;
-const int servoDX2Pin = 9;
-const int servoP2Pin  = 7;
- 
-// INDICATOR 
+const int servoCY2Pin = 7;
+const int servoDX2Pin = 8;
+const int servoP2Pin  = A2;
 
-const int indicator = 3;
- 
-// DC MOTOR PINS
- 
-// Motor 1
-const int motor1_IN1 = 10;
-const int motor1_IN2 = 11;
+// INDICATOR
 
-// Motor 2
-const int motor2_IN3 = 12;
-const int motor2_IN4 = 13;
- 
+const int indicator = A3;
+
+// DRV8833 MOTOR PINS
+
+// Motor 1 = LEFT MOTOR
+
+// PWM pin
+const int motor1_PWM = 3;
+
+// Direction pin
+const int motor1_DIR = A0;
+
+// Motor 2 = RIGHT MOTOR
+
+// PWM pin
+const int motor2_PWM = 5;
+
+// Direction pin
+const int motor2_DIR = A1;
+
 // RECEIVED DATA
- 
-struct ControlData {
 
+struct ControlData
+{
   byte ABxAngle;
   byte AByAngle;
 
@@ -79,18 +102,67 @@ struct ControlData {
 
   byte button;
 
+  // Driving data
+  byte driveSpeed;
+  byte driveX;
+  byte driveY;
 };
 
 ControlData data;
- 
+
+// MOTOR FUNCTION
+
+// forward = true  -> forward
+// forward = false -> backward
+
+void motor1Move(int pwm, bool forward)
+{
+  pwm = constrain(pwm, 0, 255);
+
+  if (forward)
+  {
+    digitalWrite(motor1_DIR, LOW);
+  }
+  else
+  {
+    digitalWrite(motor1_DIR, HIGH);
+  }
+
+  analogWrite(motor1_PWM, pwm);
+}
+
+void motor2Move(int pwm, bool forward)
+{
+  pwm = constrain(pwm, 0, 255);
+
+  if (forward)
+  {
+    digitalWrite(motor2_DIR, LOW);
+  }
+  else
+  {
+    digitalWrite(motor2_DIR, HIGH);
+  }
+
+  analogWrite(motor2_PWM, pwm);
+}
+
+// STOP MOTORS
+
+void stopMotors()
+{
+  analogWrite(motor1_PWM, 0);
+  analogWrite(motor2_PWM, 0);
+}
+
 // SETUP
- 
+
 void setup()
 {
   Serial.begin(115200);
-   
+
   // SERVOS
-   
+
   servoAY1.attach(servoAY1Pin);
   servoBX1.attach(servoBX1Pin);
   servoP1.attach(servoP1Pin);
@@ -99,7 +171,7 @@ void setup()
   servoDX2.attach(servoDX2Pin);
   servoP2.attach(servoP2Pin);
 
-  // Start at 90 degrees
+  // Start all servos at 90 degrees
 
   servoAY1.write(90);
   servoBX1.write(90);
@@ -108,32 +180,31 @@ void setup()
   servoCY2.write(90);
   servoDX2.write(90);
   servoP2.write(90);
-   
-  // INDICATOR
-   
-  pinMode(indicator, OUTPUT);
-   
-  // MOTOR PINS
-   
-  pinMode(motor1_IN1, OUTPUT);
-  pinMode(motor1_IN2, OUTPUT);
 
-  pinMode(motor2_IN3, OUTPUT);
-  pinMode(motor2_IN4, OUTPUT);
+  // INDICATOR
+
+  pinMode(indicator, OUTPUT);
+
+  digitalWrite(indicator, LOW);
+
+  // MOTOR PINS
+
+  pinMode(motor1_PWM, OUTPUT);
+  pinMode(motor1_DIR, OUTPUT);
+
+  pinMode(motor2_PWM, OUTPUT);
+  pinMode(motor2_DIR, OUTPUT);
 
   // Motors OFF
 
-  digitalWrite(motor1_IN1, LOW);
-  digitalWrite(motor1_IN2, LOW);
+  stopMotors();
 
-  digitalWrite(motor2_IN3, LOW);
-  digitalWrite(motor2_IN4, LOW);
-   
   // NRF24
-   
+
   if (!radio.begin())
   {
     Serial.println("NRF24 NOT FOUND!");
+
     while (1);
   }
 
@@ -149,35 +220,28 @@ void setup()
 }
 
 // LOOP
- 
+
 void loop()
 {
-
   if (radio.available())
   {
-
     radio.read(&data, sizeof(data));
- 
+
     // SERVO MODE
     // BUTTON ON
- 
+
     if (data.button == 1)
     {
-
       // Indicator ON
 
       digitalWrite(indicator, HIGH);
 
-       // STOP MOTORS
- 
-      digitalWrite(motor1_IN1, LOW);
-      digitalWrite(motor1_IN2, LOW);
+      // Stop motors
 
-      digitalWrite(motor2_IN3, LOW);
-      digitalWrite(motor2_IN4, LOW);
+      stopMotors();
 
-       // SERVO CONTROL
- 
+      // SERVO CONTROL
+
       servoAY1.write(data.ABxAngle);
 
       servoBX1.write(data.AByAngle);
@@ -189,9 +253,9 @@ void loop()
       servoDX2.write(data.CDyAngle);
 
       servoP2.write(data.pot2Angle);
- 
+
       // SERIAL
- 
+
       Serial.print("SERVO MODE | ");
 
       Serial.print("AB X: ");
@@ -212,91 +276,169 @@ void loop()
       Serial.print("  P2: ");
       Serial.println(data.pot2Angle);
     }
- 
+
     // DRIVING MODE
     // BUTTON OFF
- 
+
     else
     {
-
       // Indicator OFF
 
       digitalWrite(indicator, LOW);
 
-      Serial.print("DRIVING MODE | ");
-   
-      // MOTOR 1
-      // Controlled by AB X
-   
-      if (data.ABxAngle == 1)
+      // SPEED
+
+      int baseSpeed =
+        map(data.driveSpeed, 0, 100, 0, 255);
+
+      // FORWARD
+      // CD X+
+
+      if (data.driveX == 1)
       {
+        int leftSpeed  = baseSpeed;
+        int rightSpeed = baseSpeed;
 
-        // Forward
+        // RIGHT STEERING
+        // CD Y+
 
-        digitalWrite(motor1_IN1, HIGH);
-        digitalWrite(motor1_IN2, LOW);
+        if (data.driveY == 1)
+        {
+          leftSpeed  = baseSpeed + 50;
+          rightSpeed = baseSpeed - 50;
+        }
 
-        Serial.print("M1 FORWARD ");
+        // LEFT STEERING
+        // CD Y-
+
+        else if (data.driveY == 2)
+        {
+          leftSpeed  = baseSpeed - 50;
+          rightSpeed = baseSpeed + 50;
+        }
+
+        leftSpeed =
+          constrain(leftSpeed, 0, 255);
+
+        rightSpeed =
+          constrain(rightSpeed, 0, 255);
+
+        // Both forward
+
+        motor1Move(leftSpeed, true);
+
+        motor2Move(rightSpeed, true);
+
+        Serial.print("FORWARD ");
       }
 
-      else if (data.ABxAngle == 2)
+      // BACKWARD
+      // CD X-
+
+      else if (data.driveX == 2)
       {
+        int leftSpeed  = baseSpeed;
+        int rightSpeed = baseSpeed;
 
-        // Reverse
+        // RIGHT STEERING
 
-        digitalWrite(motor1_IN1, LOW);
-        digitalWrite(motor1_IN2, HIGH);
+        if (data.driveY == 1)
+        {
+          leftSpeed  = baseSpeed + 50;
+          rightSpeed = baseSpeed - 50;
+        }
 
-        Serial.print("M1 REVERSE ");
+        // LEFT STEERING
+
+        else if (data.driveY == 2)
+        {
+          leftSpeed  = baseSpeed - 50;
+          rightSpeed = baseSpeed + 50;
+        }
+
+        leftSpeed =
+          constrain(leftSpeed, 0, 255);
+
+        rightSpeed =
+          constrain(rightSpeed, 0, 255);
+
+        // Both backward
+
+        motor1Move(leftSpeed, false);
+
+        motor2Move(rightSpeed, false);
+
+        Serial.print("BACKWARD ");
       }
+
+      // CD X CENTER
 
       else
       {
 
-        // Stop
+        // RIGHT
+        // CD Y+
 
-        digitalWrite(motor1_IN1, LOW);
-        digitalWrite(motor1_IN2, LOW);
+        if (data.driveY == 1)
+        {
+          // Left motor faster
+          // Right motor slower
 
-        Serial.print("M1 STOP ");
+          int leftSpeed =
+            constrain(baseSpeed + 50, 0, 255);
+
+          int rightSpeed =
+            constrain(baseSpeed - 50, 0, 255);
+
+          motor1Move(leftSpeed, true);
+
+          motor2Move(rightSpeed, true);
+
+          Serial.print("RIGHT ");
+        }
+
+        // LEFT
+        // CD Y-
+
+        else if (data.driveY == 2)
+        {
+          // Left motor slower
+          // Right motor faster
+
+          int leftSpeed =
+            constrain(baseSpeed - 50, 0, 255);
+
+          int rightSpeed =
+            constrain(baseSpeed + 50, 0, 255);
+
+          motor1Move(leftSpeed, true);
+
+          motor2Move(rightSpeed, true);
+
+
+          Serial.print("LEFT ");
+        }
+
+        // CENTER
+
+        else
+        {
+          stopMotors();
+
+          Serial.print("STOP ");
+        }
       }
-  
-      // MOTOR 2
-      // Controlled by CD X
-   
-      if (data.CDxAngle == 1)
-      {
 
-        // Forward
+      // SERIAL
 
-        digitalWrite(motor2_IN3, HIGH);
-        digitalWrite(motor2_IN4, LOW);
+      Serial.print("Speed: ");
+      Serial.print(data.driveSpeed);
 
-        Serial.println("M2 FORWARD");
-      }
+      Serial.print("%  X: ");
+      Serial.print(data.driveX);
 
-      else if (data.CDxAngle == 2)
-      {
-
-        // Reverse
-
-        digitalWrite(motor2_IN3, LOW);
-        digitalWrite(motor2_IN4, HIGH);
-
-        Serial.println("M2 REVERSE");
-      }
-
-      else
-      {
-
-        // Stop
-
-        digitalWrite(motor2_IN3, LOW);
-        digitalWrite(motor2_IN4, LOW);
-
-        Serial.println("M2 STOP");
-      }
+      Serial.print("  Y: ");
+      Serial.println(data.driveY);
     }
   }
 }
-

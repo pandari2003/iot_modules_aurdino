@@ -1,0 +1,42 @@
+1. Main controller boards
+
+
+Component	Quantity	Purpose
+ESP32 development board	1	Transmitter/remote controller
+Arduino UNO/Nano	1	Receiver and servo/motor controller
+E01-ML01DP5 NRF24L01P wireless module	2	Wireless communication
+
+
+2. Transmitter controls
+
+
+Component	Quantity	Purpose
+2-axis joystick module	2	AB and CD joystick control
+10 kΩ potentiometer	2	Servo P1 and P2 control
+Push button	1	Switch Servo/Driving mode
+LED	1	Mode indicator
+220 Ω resistor	1	LED current limiting
+
+
+3. Receiver/mechanical components
+
+
+Component	Quantity	Purpose
+Standard hobby servo	6	AY1, BX1, P1, CY2, DX2, P2
+DRV8833 motor driver	1	Controls two DC motors
+DC geared motor	2	Left and right drive motors
+Robot/car chassis	1	Mechanical platform
+Wheels	2 or 4	Depending on your chassis
+Caster wheel	1	If using a 2-wheel-drive chassis
+
+
+4. Power
+
+I recommend separate power supplies for the motors/servos and logic.
+
+Component	Quantity	Purpose
+Battery pack for DC motors	1	Motor power
+Suitable 5–6 V supply/BEC for servos	1	Six servo power
+5 V USB/power supply or regulator	1	Arduino/logic if needed
+3.3 V regulated supply	1	E01 modules if your board doesn't provide a suitable supply
+Capacitors, e.g. 470–1000 µF	1–2	Reduce servo/motor supply voltage dips
