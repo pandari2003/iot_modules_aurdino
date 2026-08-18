@@ -1,6 +1,7 @@
 /*
 Servos
 Servo AY1 signal → D2
+Servo AY11 signal → A4
 Servo BX1 signal → D4
 Servo P1  signal → D6
 
@@ -47,6 +48,7 @@ const byte address[6] = "REM01";
 // SERVOS
 
 Servo servoAY1;
+Servo servoAY11;
 Servo servoBX1;
 Servo servoP1;
 
@@ -56,6 +58,7 @@ Servo servoP2;
 
 // SERVO PINS
 
+const int servoAY11Pin = A4;
 const int servoAY1Pin = 2;
 const int servoBX1Pin = 4;
 const int servoP1Pin  = 6;
@@ -163,6 +166,7 @@ void setup()
 
   // SERVOS
 
+  servoAY11.attach(servoAY11Pin);
   servoAY1.attach(servoAY1Pin);
   servoBX1.attach(servoBX1Pin);
   servoP1.attach(servoP1Pin);
@@ -173,6 +177,7 @@ void setup()
 
   // Start all servos at 90 degrees
 
+  servoAY11.write(90);
   servoAY1.write(90);
   servoBX1.write(90);
   servoP1.write(90);
@@ -244,6 +249,8 @@ void loop()
 
       servoAY1.write(data.ABxAngle);
 
+      servoAY11.write(180-data.ABxAngle);
+
       servoBX1.write(data.AByAngle);
 
       servoP1.write(data.pot1Angle);
@@ -261,6 +268,9 @@ void loop()
       Serial.print("AB X: ");
       Serial.print(data.ABxAngle);
 
+      Serial.print("  AY11 Opp: ");
+      Serial.print(180 - data.ABxAngle);
+      
       Serial.print("  AB Y: ");
       Serial.print(data.AByAngle);
 
