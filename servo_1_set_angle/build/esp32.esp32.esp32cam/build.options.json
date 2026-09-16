@@ -1,0 +1,10 @@
+{
+  "additionalFiles": "",
+  "builtInLibrariesFolders": "C:\\Users\\hi\\AppData\\Local\\Arduino15\\libraries",
+  "compiler.optimization_flags": "-Os",
+  "customBuildProperties": "",
+  "fqbn": "esp32:esp32:esp32cam:CPUFreq=240,FlashFreq=80,FlashMode=qio,PartitionScheme=huge_app,DebugLevel=none,EraseFlash=none",
+  "hardwareFolders": "C:\\Users\\hi\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.3.11,C:\\Users\\hi\\AppData\\Local\\Arduino15\\packages\\esp32\\hardware\\esp32\\3.3.11",
+  "otherLibrariesFolders": "c:\\Users\\hi\\Documents\\Arduino\\libraries",
+  "sketchLocation": "C:\\Users\\hi\\AppData\\Local\\Temp\\.arduinoIDE-unsaved2026812-6372-biprnt.3opfl\\Blink"
+}
