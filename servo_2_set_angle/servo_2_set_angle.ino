@@ -43,7 +43,7 @@ void loop() {
           // If 0 is typed: Servo 1 = 0, Servo 2 = (180 - 0) = 180
           // Works for all other angles too (e.g., if 45 is typed, Servo 2 = 135)
           s1Angle = targetAngle;
-          s2Angle = 180 - targetAngle; 
+          s2Angle = targetAngle; 
         }
 
         // Display the synchronized results cleanly on screen

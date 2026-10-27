@@ -6,21 +6,22 @@ Servo myServo;
 
 void setup()
 {               
-  myServo.setPeriodHertz(50);
+  Serial.begin(115200); 
+  myServo.setPeriodHertz(60);
   myServo.attach(SERVO_PIN, 500, 2400);
 }
 
 void loop()
 {
-  for (int angle = 0; angle <= 57; angle++) 
+  for (int angle = 0; angle <= 50; angle++) 
   {                                                                                                                       
     myServo.write(angle);
-    delay(300);
+    delay(30);
   }
 
-  for (int angle = 57; angle >= 0; angle--)
+  for (int angle = 50; angle >= 0; angle--)
   {
     myServo.write(angle);
-    delay(300);
+    delay(30);
   }
 }

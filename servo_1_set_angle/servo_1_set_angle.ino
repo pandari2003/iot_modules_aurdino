@@ -1,7 +1,7 @@
 #include <Servo.h>
 
 Servo myServo;          
-const int servoPin = 9; 
+const int servoPin = 13; 
 
 void setup() {
   Serial.begin(9600);       
@@ -10,7 +10,7 @@ void setup() {
   myServo.write(90); // Initial position
   
   Serial.println("=== Arduino Uno MG995 Control ===");
-  Serial.println("Enter angle (0-180):");
+  Serial.println("Enter angle (0-190):");
 }
 
 void loop() {
@@ -23,12 +23,12 @@ void loop() {
       
       int angle = Serial.parseInt(); 
       
-      if (angle >= 0 && angle <= 180) {
+      if (angle >= 0 && angle <= 190) {
         Serial.print("SUCCESS: Set position to -> [ ");
         Serial.print(angle); 
         Serial.println(" ]");
         
-        myServo.write(angle); 
+        myServo.write(angle);
       } else {
         Serial.print("ERROR: Out of bounds -> [ ");
         Serial.print(angle);

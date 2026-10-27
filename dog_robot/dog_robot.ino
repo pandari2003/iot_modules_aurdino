@@ -1,29 +1,92 @@
 #include <WiFiS3.h>
-#include <Servo.h>
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
 
-//---------------- WiFi ----------------//
+//====================================================
+//                 WIFI
+//====================================================
+
 char ssid[] = "DogRobot";
 char pass[] = "12345678";
 
 WiFiServer server(80);
 
+//====================================================
+//              PCA9685 SERVO DRIVER
+//====================================================
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
+
+// PCA9685 servo settings
+const int SERVOMIN = 150;
+const int SERVOMAX = 600;
+const int SERVO_FREQ = 50;
+
+//====================================================
+//        PCA9685 SERVO COMPATIBILITY CLASS
+//====================================================
+// This keeps your original .write() logic unchanged.
+// Instead of Arduino Servo pins, PCA9685 channels
+// are used.
+
+class PCAServo {
+  private:
+    int channel;
+
+  public:
+
+    void attach(int ch) {
+      channel = ch;
+    }
+
+    void write(int angle) {
+
+      angle = constrain(angle, 0, 180);
+
+      int pulse = map(
+        angle,
+        0,
+        180,
+        SERVOMIN,
+        SERVOMAX
+      );
+
+      pwm.setPWM(channel, 0, pulse);
+    }
+};
+
 //--------------- Servos ---------------//
-Servo hipFL, hipFR, hipBL, hipBR;
-Servo kneeFL, kneeFR, kneeBL, kneeBR;
 
-//--------------- Pins -----------------//
-// Change these if your wiring is different
-const int HIP_FL_PIN   = 4;
-const int HIP_FR_PIN   = 5;
-const int HIP_BL_PIN   = 6;
-const int HIP_BR_PIN   = 7;
+PCAServo hipFL;
+PCAServo hipFR;
+PCAServo hipBL;
+PCAServo hipBR;
 
-const int KNEE_FL_PIN  = 8;
-const int KNEE_FR_PIN  = 9;
-const int KNEE_BL_PIN  = 10;
-const int KNEE_BR_PIN  = 11;
+PCAServo kneeFL;
+PCAServo kneeFR;
+PCAServo kneeBL;
+PCAServo kneeBR;
 
-//------------ Current Position --------//
+//====================================================
+//             PCA9685 CHANNELS
+//====================================================
+
+const int HIP_FL_CH  = 0;
+const int KNEE_FL_CH = 1;
+
+const int HIP_FR_CH  = 2;
+const int KNEE_FR_CH = 3;
+
+const int HIP_BL_CH  = 4;
+const int KNEE_BL_CH = 5;
+
+const int HIP_BR_CH  = 6;
+const int KNEE_BR_CH = 7;
+
+//====================================================
+//          CURRENT SERVO POSITIONS
+//====================================================
+
 int hipFLPos = 90;
 int hipFRPos = 90;
 int hipBLPos = 90;
@@ -34,7 +97,10 @@ int kneeFRPos = 90;
 int kneeBLPos = 90;
 int kneeBRPos = 90;
 
-// Walking parameters
+//====================================================
+//             WALKING PARAMETERS
+//====================================================
+
 // Left legs
 const int HIP_LEFT_FORWARD = 70;
 const int HIP_LEFT_BACK    = 110;
@@ -46,10 +112,13 @@ const int HIP_RIGHT_BACK    = 70;
 const int KNEE_UP   = 60;
 const int KNEE_DOWN = 90;
 
-const int STEP_DELAY  = 15;
+const int STEP_DELAY = 15;
 
-//------------- Smooth Move ------------//
-void moveServo(Servo &servo, int &current, int target)
+//====================================================
+//              SMOOTH MOVE
+//====================================================
+
+void moveServo(PCAServo &servo, int &current, int target)
 {
   if (current < target)
   {
@@ -71,13 +140,17 @@ void moveServo(Servo &servo, int &current, int target)
   }
 }
 
+//====================================================
+//                 MOVE LEG
+//====================================================
+
 void moveLeg(
-Servo &hip,
-Servo &knee,
-int &hipPos,
-int &kneePos,
-int hipTarget,
-int kneeTarget)
+  PCAServo &hip,
+  PCAServo &knee,
+  int &hipPos,
+  int &kneePos,
+  int hipTarget,
+  int kneeTarget)
 {
   while (hipPos != hipTarget || kneePos != kneeTarget)
   {
@@ -94,143 +167,261 @@ int kneeTarget)
   }
 }
 
+//====================================================
+//              MOVE TWO LEGS
+//====================================================
+
 void moveTwoLegs(
-    Servo &hip1, Servo &knee1,
-    int &hipPos1, int &kneePos1,
-    int hipTarget1, int kneeTarget1,
+  PCAServo &hip1,
+  PCAServo &knee1,
+  int &hipPos1,
+  int &kneePos1,
+  int hipTarget1,
+  int kneeTarget1,
 
-    Servo &hip2, Servo &knee2,
-    int &hipPos2, int &kneePos2,
-    int hipTarget2, int kneeTarget2)
+  PCAServo &hip2,
+  PCAServo &knee2,
+  int &hipPos2,
+  int &kneePos2,
+  int hipTarget2,
+  int kneeTarget2)
 {
-    while (hipPos1 != hipTarget1 ||
-           kneePos1 != kneeTarget1 ||
-           hipPos2 != hipTarget2 ||
-           kneePos2 != kneeTarget2)
-    {
-        if (hipPos1 < hipTarget1) hipPos1++;
-        if (hipPos1 > hipTarget1) hipPos1--;
+  while (
+    hipPos1 != hipTarget1 ||
+    kneePos1 != kneeTarget1 ||
+    hipPos2 != hipTarget2 ||
+    kneePos2 != kneeTarget2)
+  {
+    if (hipPos1 < hipTarget1) hipPos1++;
+    if (hipPos1 > hipTarget1) hipPos1--;
 
-        if (kneePos1 < kneeTarget1) kneePos1++;
-        if (kneePos1 > kneeTarget1) kneePos1--;
+    if (kneePos1 < kneeTarget1) kneePos1++;
+    if (kneePos1 > kneeTarget1) kneePos1--;
 
-        if (hipPos2 < hipTarget2) hipPos2++;
-        if (hipPos2 > hipTarget2) hipPos2--;
+    if (hipPos2 < hipTarget2) hipPos2++;
+    if (hipPos2 > hipTarget2) hipPos2--;
 
-        if (kneePos2 < kneeTarget2) kneePos2++;
-        if (kneePos2 > kneeTarget2) kneePos2--;
+    if (kneePos2 < kneeTarget2) kneePos2++;
+    if (kneePos2 > kneeTarget2) kneePos2--;
 
-        hip1.write(hipPos1);
-        knee1.write(kneePos1);
+    hip1.write(hipPos1);
+    knee1.write(kneePos1);
 
-        hip2.write(hipPos2);
-        knee2.write(kneePos2);
+    hip2.write(hipPos2);
+    knee2.write(kneePos2);
 
-        delay(STEP_DELAY);
-    }
+    delay(STEP_DELAY);
+  }
 }
+
+//====================================================
+//                 FORWARD WALK
+//====================================================
+
 void walkCycle()
 {
-    //===========================
-    // Phase 1
-    // Front Left + Back Right
-    //===========================
+  //===========================
+  // Phase 1
+  // Front Left + Back Right
+  //===========================
 
-    // Lift both legs
-    moveTwoLegs(
-        hipFL, kneeFL, hipFLPos, kneeFLPos, hipFLPos, KNEE_UP,
-        hipBR, kneeBR, hipBRPos, kneeBRPos, hipBRPos, KNEE_UP);
+  // Lift both legs
+  moveTwoLegs(
+    hipFL, kneeFL,
+    hipFLPos, kneeFLPos,
+    hipFLPos, KNEE_UP,
 
-    // Swing forward
-    moveTwoLegs(
-        hipFL, kneeFL, hipFLPos, kneeFLPos, HIP_LEFT_FORWARD, KNEE_UP,
-        hipBR, kneeBR, hipBRPos, kneeBRPos, HIP_RIGHT_FORWARD, KNEE_UP);
+    hipBR, kneeBR,
+    hipBRPos, kneeBRPos,
+    hipBRPos, KNEE_UP
+  );
 
-    // Place on ground
-    moveTwoLegs(
-        hipFL, kneeFL, hipFLPos, kneeFLPos, HIP_LEFT_FORWARD, KNEE_DOWN,
-        hipBR, kneeBR, hipBRPos, kneeBRPos, HIP_RIGHT_FORWARD, KNEE_DOWN);
+  // Swing forward
+  moveTwoLegs(
+    hipFL, kneeFL,
+    hipFLPos, kneeFLPos,
+    HIP_LEFT_FORWARD, KNEE_UP,
 
-    //===========================
-    // Phase 2
-    // Front Right + Back Left
-    //===========================
+    hipBR, kneeBR,
+    hipBRPos, kneeBRPos,
+    HIP_RIGHT_FORWARD, KNEE_UP
+  );
 
-    moveTwoLegs(
-        hipFR, kneeFR, hipFRPos, kneeFRPos, hipFRPos, KNEE_UP,
-        hipBL, kneeBL, hipBLPos, kneeBLPos, hipBLPos, KNEE_UP);
+  // Place on ground
+  moveTwoLegs(
+    hipFL, kneeFL,
+    hipFLPos, kneeFLPos,
+    HIP_LEFT_FORWARD, KNEE_DOWN,
 
-    moveTwoLegs(
-        hipFR, kneeFR, hipFRPos, kneeFRPos, HIP_RIGHT_FORWARD, KNEE_UP,
-        hipBL, kneeBL, hipBLPos, kneeBLPos, HIP_LEFT_FORWARD, KNEE_UP);
+    hipBR, kneeBR,
+    hipBRPos, kneeBRPos,
+    HIP_RIGHT_FORWARD, KNEE_DOWN
+  );
 
-    moveTwoLegs(
-        hipFR, kneeFR, hipFRPos, kneeFRPos, HIP_RIGHT_FORWARD, KNEE_DOWN,
-        hipBL, kneeBL, hipBLPos, kneeBLPos, HIP_LEFT_FORWARD, KNEE_DOWN);
+  //===========================
+  // Phase 2
+  // Front Right + Back Left
+  //===========================
 
-    //===========================
-    // Return to neutral
-    //===========================
+  moveTwoLegs(
+    hipFR, kneeFR,
+    hipFRPos, kneeFRPos,
+    hipFRPos, KNEE_UP,
 
-    moveTwoLegs(
-        hipFL, kneeFL, hipFLPos, kneeFLPos, 90, KNEE_DOWN,
-        hipBR, kneeBR, hipBRPos, kneeBRPos, 90, KNEE_DOWN);
+    hipBL, kneeBL,
+    hipBLPos, kneeBLPos,
+    hipBLPos, KNEE_UP
+  );
 
-    moveTwoLegs(
-        hipFR, kneeFR, hipFRPos, kneeFRPos, 90, KNEE_DOWN,
-        hipBL, kneeBL, hipBLPos, kneeBLPos, 90, KNEE_DOWN);
+  moveTwoLegs(
+    hipFR, kneeFR,
+    hipFRPos, kneeFRPos,
+    HIP_RIGHT_FORWARD, KNEE_UP,
+
+    hipBL, kneeBL,
+    hipBLPos, kneeBLPos,
+    HIP_LEFT_FORWARD, KNEE_UP
+  );
+
+  moveTwoLegs(
+    hipFR, kneeFR,
+    hipFRPos, kneeFRPos,
+    HIP_RIGHT_FORWARD, KNEE_DOWN,
+
+    hipBL, kneeBL,
+    hipBLPos, kneeBLPos,
+    HIP_LEFT_FORWARD, KNEE_DOWN
+  );
+
+  //===========================
+  // Return to neutral
+  //===========================
+
+  moveTwoLegs(
+    hipFL, kneeFL,
+    hipFLPos, kneeFLPos,
+    90, KNEE_DOWN,
+
+    hipBR, kneeBR,
+    hipBRPos, kneeBRPos,
+    90, KNEE_DOWN
+  );
+
+  moveTwoLegs(
+    hipFR, kneeFR,
+    hipFRPos, kneeFRPos,
+    90, KNEE_DOWN,
+
+    hipBL, kneeBL,
+    hipBLPos, kneeBLPos,
+    90, KNEE_DOWN
+  );
 }
-/***************back walk**************/
+
+//====================================================
+//                 BACKWARD WALK
+//====================================================
 
 void walkCycleBackward()
 {
-    //===========================
-    // Phase 1
-    // Front Left + Back Right
-    //===========================
+  //===========================
+  // Phase 1
+  // Front Left + Back Right
+  //===========================
 
-    // Lift both legs
-    moveTwoLegs(
-        hipFL, kneeFL, hipFLPos, kneeFLPos, hipFLPos, KNEE_UP,
-        hipBR, kneeBR, hipBRPos, kneeBRPos, hipBRPos, KNEE_UP);
+  moveTwoLegs(
+    hipFL, kneeFL,
+    hipFLPos, kneeFLPos,
+    hipFLPos, KNEE_UP,
 
-    // Swing backward
-    moveTwoLegs(
-        hipFL, kneeFL, hipFLPos, kneeFLPos, HIP_LEFT_BACK, KNEE_UP,
-        hipBR, kneeBR, hipBRPos, kneeBRPos, HIP_RIGHT_BACK, KNEE_UP);
+    hipBR, kneeBR,
+    hipBRPos, kneeBRPos,
+    hipBRPos, KNEE_UP
+  );
 
-    // Place on ground
-    moveTwoLegs(
-        hipFL, kneeFL, hipFLPos, kneeFLPos, HIP_LEFT_BACK, KNEE_DOWN,
-        hipBR, kneeBR, hipBRPos, kneeBRPos, HIP_RIGHT_BACK, KNEE_DOWN);
+  // Swing backward
+  moveTwoLegs(
+    hipFL, kneeFL,
+    hipFLPos, kneeFLPos,
+    HIP_LEFT_BACK, KNEE_UP,
 
-    //===========================
-    // Phase 2
-    // Front Right + Back Left
-    //===========================
+    hipBR, kneeBR,
+    hipBRPos, kneeBRPos,
+    HIP_RIGHT_BACK, KNEE_UP
+  );
 
-    moveTwoLegs(
-        hipFR, kneeFR, hipFRPos, kneeFRPos, hipFRPos, KNEE_UP,
-        hipBL, kneeBL, hipBLPos, kneeBLPos, hipBLPos, KNEE_UP);
+  // Place on ground
+  moveTwoLegs(
+    hipFL, kneeFL,
+    hipFLPos, kneeFLPos,
+    HIP_LEFT_BACK, KNEE_DOWN,
 
-    moveTwoLegs(
-        hipFR, kneeFR, hipFRPos, kneeFRPos, HIP_RIGHT_BACK, KNEE_UP,
-        hipBL, kneeBL, hipBLPos, kneeBLPos, HIP_LEFT_BACK, KNEE_UP);
+    hipBR, kneeBR,
+    hipBRPos, kneeBRPos,
+    HIP_RIGHT_BACK, KNEE_DOWN
+  );
 
-    moveTwoLegs(
-        hipFR, kneeFR, hipFRPos, kneeFRPos, HIP_RIGHT_BACK, KNEE_DOWN,
-        hipBL, kneeBL, hipBLPos, kneeBLPos, HIP_LEFT_BACK, KNEE_DOWN);
+  //===========================
+  // Phase 2
+  // Front Right + Back Left
+  //===========================
 
-    // Return to stand
-    moveTwoLegs(
-        hipFL, kneeFL, hipFLPos, kneeFLPos, 90, KNEE_DOWN,
-        hipBR, kneeBR, hipBRPos, kneeBRPos, 90, KNEE_DOWN);
+  moveTwoLegs(
+    hipFR, kneeFR,
+    hipFRPos, kneeFRPos,
+    hipFRPos, KNEE_UP,
 
-    moveTwoLegs(
-        hipFR, kneeFR, hipFRPos, kneeFRPos, 90, KNEE_DOWN,
-        hipBL, kneeBL, hipBLPos, kneeBLPos, 90, KNEE_DOWN);
+    hipBL, kneeBL,
+    hipBLPos, kneeBLPos,
+    hipBLPos, KNEE_UP
+  );
+
+  moveTwoLegs(
+    hipFR, kneeFR,
+    hipFRPos, kneeFRPos,
+    HIP_RIGHT_BACK, KNEE_UP,
+
+    hipBL, kneeBL,
+    hipBLPos, kneeBLPos,
+    HIP_LEFT_BACK, KNEE_UP
+  );
+
+  moveTwoLegs(
+    hipFR, kneeFR,
+    hipFRPos, kneeFRPos,
+    HIP_RIGHT_BACK, KNEE_DOWN,
+
+    hipBL, kneeBL,
+    hipBLPos, kneeBLPos,
+    HIP_LEFT_BACK, KNEE_DOWN
+  );
+
+  // Return to stand
+  moveTwoLegs(
+    hipFL, kneeFL,
+    hipFLPos, kneeFLPos,
+    90, KNEE_DOWN,
+
+    hipBR, kneeBR,
+    hipBRPos, kneeBRPos,
+    90, KNEE_DOWN
+  );
+
+  moveTwoLegs(
+    hipFR, kneeFR,
+    hipFRPos, kneeFRPos,
+    90, KNEE_DOWN,
+
+    hipBL, kneeBL,
+    hipBLPos, kneeBLPos,
+    90, KNEE_DOWN
+  );
 }
-//------------- Stand Pose -------------//
+
+//====================================================
+//                  STAND POSE
+//====================================================
+
 void standPose()
 {
   while (
@@ -243,7 +434,6 @@ void standPose()
     kneeBLPos != 90 ||
     kneeBRPos != 90)
   {
-
     if (hipFLPos > 90) hipFLPos--;
     if (hipFRPos < 90) hipFRPos++;
     if (hipBLPos > 90) hipBLPos--;
@@ -268,7 +458,10 @@ void standPose()
   }
 }
 
-//-------------- Sit Pose --------------//
+//====================================================
+//                   SIT POSE
+//====================================================
+
 void sitPose()
 {
   while (
@@ -281,7 +474,6 @@ void sitPose()
     kneeBLPos != 140 ||
     kneeBRPos != 50)
   {
-
     if (hipFLPos < 140) hipFLPos++;
     if (hipFRPos > 50) hipFRPos--;
     if (hipBLPos < 140) hipBLPos++;
@@ -306,35 +498,45 @@ void sitPose()
   }
 }
 
+//====================================================
+//                 WALK FORWARD
+//====================================================
+
 void walkForward()
 {
-    // If the robot is sitting, stand up smoothly.
-    standPose();
+  // If the robot is sitting, stand up smoothly.
+  standPose();
 
-    // Walk forward.
-    for (int i = 0; i < 5; i++)
-    {
-        walkCycle();
-    }
+  // Walk forward.
+  for (int i = 0; i < 5; i++)
+  {
+    walkCycle();
+  }
 
-    // Finish in standing position.
-    standPose();
+  // Finish in standing position.
+  standPose();
 }
 
-/******************back walk******************/
+//====================================================
+//                 WALK BACKWARD
+//====================================================
+
 void walkBackward()
 {
-    standPose();
+  standPose();
 
-    for (int i = 0; i < 5; i++)
-    {
-        walkCycleBackward();
-    }
+  for (int i = 0; i < 5; i++)
+  {
+    walkCycleBackward();
+  }
 
-    standPose();
+  standPose();
 }
 
-//------------- Web Page ---------------//
+//====================================================
+//                  WEB PAGE
+//====================================================
+
 String page()
 {
   String html =
@@ -359,40 +561,74 @@ String page()
   return html;
 }
 
-//--------------- Setup ----------------//
+//====================================================
+//                     SETUP
+//====================================================
+
 void setup()
 {
-  hipFL.attach(HIP_FL_PIN);
-  hipFR.attach(HIP_FR_PIN);
-  hipBL.attach(HIP_BL_PIN);
-  hipBR.attach(HIP_BR_PIN);
+  Serial.begin(115200);
 
-  kneeFL.attach(KNEE_FL_PIN);
-  kneeFR.attach(KNEE_FR_PIN);
-  kneeBL.attach(KNEE_BL_PIN);
-  kneeBR.attach(KNEE_BR_PIN);
+  //==================================================
+  // START PCA9685
+  //==================================================
 
-// Start in stand position
-hipFL.write(90);
-hipFR.write(90);
-hipBL.write(90);
-hipBR.write(90);
+  Wire.begin();
 
-kneeFL.write(90);
-kneeFR.write(90);
-kneeBL.write(90);
-kneeBR.write(90);
+  pwm.begin();
+
+  pwm.setOscillatorFrequency(27000000);
+
+  pwm.setPWMFreq(SERVO_FREQ);
+
+  delay(10);
+
+  //==================================================
+  // ASSIGN PCA9685 CHANNELS
+  //==================================================
+
+  hipFL.attach(HIP_FL_CH);
+  kneeFL.attach(KNEE_FL_CH);
+
+  hipFR.attach(HIP_FR_CH);
+  kneeFR.attach(KNEE_FR_CH);
+
+  hipBL.attach(HIP_BL_CH);
+  kneeBL.attach(KNEE_BL_CH);
+
+  hipBR.attach(HIP_BR_CH);
+  kneeBR.attach(KNEE_BR_CH);
+
+  //==================================================
+  // START IN STAND POSITION
+  //==================================================
+
+  hipFL.write(90);
+  hipFR.write(90);
+  hipBL.write(90);
+  hipBR.write(90);
+
+  kneeFL.write(90);
+  kneeFR.write(90);
+  kneeBL.write(90);
+  kneeBR.write(90);
+
+  //==================================================
+  // WIFI ACCESS POINT
+  //==================================================
 
   WiFi.beginAP(ssid, pass);
 
-  Serial.begin(115200);
   Serial.print("AP IP Address: ");
   Serial.println(WiFi.localIP());
 
   server.begin();
 }
 
-//---------------- Loop ----------------//
+//====================================================
+//                      LOOP
+//====================================================
+
 void loop()
 {
   WiFiClient client = server.available();
@@ -400,6 +636,7 @@ void loop()
   if (client)
   {
     String req = client.readStringUntil('\r');
+
     client.flush();
 
     if (req.indexOf("GET /stand") >= 0)
@@ -408,16 +645,17 @@ void loop()
     if (req.indexOf("GET /sit") >= 0)
       sitPose();
 
-    if(req.indexOf("GET /forward") >= 0)
-    walkForward();
+    if (req.indexOf("GET /forward") >= 0)
+      walkForward();
 
-   if(req.indexOf("GET /backward") >= 0)
-    walkBackward();
+    if (req.indexOf("GET /backward") >= 0)
+      walkBackward();
 
     client.println("HTTP/1.1 200 OK");
     client.println("Content-Type: text/html");
     client.println("Connection: close");
     client.println();
+
     client.println(page());
 
     client.stop();
