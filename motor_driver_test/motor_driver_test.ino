@@ -1,7 +1,8 @@
 // Define the pins connected to the DRV8833 IN1 and IN2
-const int IN1 = 10;
-const int IN2 = 9;
-
+const int IN1 = 7;
+const int IN2 = 8;
+const int IN3 = 9;
+const int IN4 = 10;
 void setup() {
   // Initialize serial communication at 9600 baud rate
   Serial.begin(9600);
@@ -9,7 +10,8 @@ void setup() {
   // Set the motor control pins as outputs
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
-  
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
   // Ensure the motor starts in a stopped state
   motorStop();
   
@@ -57,6 +59,8 @@ void loop() {
 void motorForward() {
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
   Serial.println("Motor moving FORWARD");
 }
 
@@ -64,6 +68,8 @@ void motorForward() {
 void motorBackward() {
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
   Serial.println("Motor moving BACKWARD");
 }
 
@@ -71,6 +77,8 @@ void motorBackward() {
 void motorStop() {
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
   Serial.println("Motor STOPPED");
 }
 /*
