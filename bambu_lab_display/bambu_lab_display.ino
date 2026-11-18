@@ -234,14 +234,14 @@ void loadMQTTSettings() {
     return;
   }
 
-  ssid        = preferences.getString("wifi_ssid", ssid);
-  password    = preferences.getString("wifi_pass", password);
+  ssid = preferences.getString("wifi_ssid", ssid);
+  password = preferences.getString("wifi_pass", password);
 
   mqtt_server = preferences.getString("server", mqtt_server);
-  mqtt_port   = preferences.getUShort("port", mqtt_port);
-  mqtt_user   = preferences.getString("user", mqtt_user);
-  mqtt_pass   = preferences.getString("pass", mqtt_pass);
-  serial_num  = preferences.getString("serial", serial_num);
+  mqtt_port = preferences.getUShort("port", mqtt_port);
+  mqtt_user = preferences.getString("user", mqtt_user);
+  mqtt_pass = preferences.getString("pass", mqtt_pass);
+  serial_num = preferences.getString("serial", serial_num);
 
   preferences.end();
 
@@ -322,12 +322,10 @@ void drawStaticUI() {
 
   // Right-side active part card
   tft.drawRoundRect(
-    275, 60, 190, 240, 8, TFT_DARKGREY
-  );
+    275, 60, 190, 240, 8, TFT_DARKGREY);
 
   tft.fillRoundRect(
-    275, 60, 190, 34, 8, 0x18E3
-  );
+    275, 60, 190, 34, 8, 0x18E3);
 
   tft.setTextDatum(MC_DATUM);
   tft.setTextColor(TFT_WHITE, 0x18E3);
@@ -349,8 +347,7 @@ void drawPrintingIcon(int cx, int cy) {
 
   // Printer frame
   tft.drawRoundRect(
-    cx - 48, cy - 43, 96, 82, 7, TFT_CYAN
-  );
+    cx - 48, cy - 43, 96, 82, 7, TFT_CYAN);
 
   // Vertical frame supports
   tft.drawLine(cx - 36, cy - 32, cx - 36, cy + 25, TFT_WHITE);
@@ -358,38 +355,31 @@ void drawPrintingIcon(int cx, int cy) {
 
   // Print head
   tft.fillRoundRect(
-    cx - 13, cy - 29, 26, 10, 3, TFT_ORANGE
-  );
+    cx - 13, cy - 29, 26, 10, 3, TFT_ORANGE);
 
   tft.fillTriangle(
     cx - 6, cy - 19,
     cx + 6, cy - 19,
     cx, cy - 12,
-    TFT_ORANGE
-  );
+    TFT_ORANGE);
 
   // Build plate
   tft.drawFastHLine(
-    cx - 32, cy + 13, 64, TFT_WHITE
-  );
+    cx - 32, cy + 13, 64, TFT_WHITE);
 
   // Printed object
   tft.drawRect(
-    cx - 15, cy - 7, 30, 20, TFT_GREEN
-  );
+    cx - 15, cy - 7, 30, 20, TFT_GREEN);
 
   tft.drawFastHLine(
-    cx - 15, cy, 30, TFT_GREEN
-  );
+    cx - 15, cy, 30, TFT_GREEN);
 
   tft.drawFastHLine(
-    cx - 15, cy + 7, 30, TFT_GREEN
-  );
+    cx - 15, cy + 7, 30, TFT_GREEN);
 
   // Printer base
   tft.fillRoundRect(
-    cx - 48, cy + 40, 96, 7, 3, TFT_DARKGREY
-  );
+    cx - 48, cy + 40, 96, 7, 3, TFT_DARKGREY);
 
   // Printing status
   tft.setTextDatum(MC_DATUM);
@@ -397,8 +387,7 @@ void drawPrintingIcon(int cx, int cy) {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
 
   tft.drawString(
-    "PRINTING", cx, cy + 65
-  );
+    "PRINTING", cx, cy + 65);
 }
 
 
@@ -429,8 +418,7 @@ void showStatusBar(String message, uint16_t color) {
   }
 
   // Do not redraw if nothing has changed
-  if (message == lastStatusDrawn &&
-      color == lastStatusDrawnColor) {
+  if (message == lastStatusDrawn && color == lastStatusDrawnColor) {
     return;
   }
 
@@ -478,8 +466,8 @@ void updateStatusBar() {
   else if (!client.connected()) {
 
     message = mqttAttempted
-              ? "MQTT CONNECTION FAILED"
-              : "MQTT CONNECTING";
+                ? "MQTT CONNECTION FAILED"
+                : "MQTT CONNECTING";
 
     color = mqttAttempted ? TFT_RED : TFT_ORANGE;
   }
@@ -498,12 +486,10 @@ void updateStatusBar() {
         if (printState == "PAUSE") {
           message = "PRINT PAUSED";
           color = TFT_ORANGE;
-        }
-        else if (printState == "PREPARE") {
+        } else if (printState == "PREPARE") {
           message = "PREPARING PRINT";
           color = TFT_ORANGE;
-        }
-        else {
+        } else {
           message = "PRINTING IN PROGRESS";
           color = TFT_DARKGREEN;
         }
@@ -581,8 +567,7 @@ void updateScreen() {
 
     tft.drawString(
       String(progress) + "%",
-      15, 60
-    );
+      15, 60);
 
     lastProgress = progress;
   }
@@ -592,9 +577,7 @@ void updateScreen() {
   // =========================================
 
   if (
-    currentLayer != lastCurrentLayer ||
-    totalLayers != lastTotalLayers
-  ) {
+    currentLayer != lastCurrentLayer || totalLayers != lastTotalLayers) {
 
     tft.fillRect(140, 55, 120, 45, TFT_BLACK);
 
@@ -604,8 +587,7 @@ void updateScreen() {
     tft.setTextPadding(0);
 
     String layerText =
-      "Layer " + String(currentLayer) +
-      " / " + String(totalLayers);
+      "Layer " + String(currentLayer) + " / " + String(totalLayers);
 
     tft.drawString(layerText, 145, 72);
 
@@ -634,8 +616,7 @@ void updateScreen() {
       tft.fillRoundRect(
         17, 117,
         barWidth, 22,
-        3, TFT_GREEN
-      );
+        3, TFT_GREEN);
     }
 
     lastBarProgress = progress;
@@ -655,8 +636,7 @@ void updateScreen() {
     tft.setTextPadding(0);
 
     String remainingText =
-      "Remaining: " +
-      String(remainingMins) + " min";
+      "Remaining: " + String(remainingMins) + " min";
 
     tft.drawString(remainingText, 15, 155);
 
@@ -668,8 +648,7 @@ void updateScreen() {
   // =========================================
 
   String nozzleText =
-    "Nozzle: " + String(nozzleTemp, 1) +
-    " / " + String(nozzleTarget, 1) + " C";
+    "Nozzle: " + String(nozzleTemp, 1) + " / " + String(nozzleTarget, 1) + " C";
 
   if (nozzleText != lastNozzleText) {
 
@@ -690,8 +669,7 @@ void updateScreen() {
   // =========================================
 
   String bedText =
-    "Bed: " + String(bedTemp, 1) +
-    " / " + String(bedTarget, 1) + " C";
+    "Bed: " + String(bedTemp, 1) + " / " + String(bedTarget, 1) + " C";
 
   if (bedText != lastBedText) {
 
@@ -747,10 +725,8 @@ void updateScreen() {
 
       tft.drawString(
         "No Active Print",
-        370, 230
-      );
-    }
-    else {
+        370, 230);
+    } else {
 
       drawPrintingIcon(370, 150);
     }
@@ -844,8 +820,7 @@ void drawButton(
   tft.drawString(
     label,
     x + w / 2,
-    y + h / 2
-  );
+    y + h / 2);
 }
 
 // =====================================================
@@ -871,8 +846,7 @@ void drawSettingsScreen() {
 
   tft.drawString(
     "NETWORK & MQTT SETTINGS",
-    10, 11
-  );
+    10, 11);
 
   // =========================================
   // SETTINGS ROW CONFIGURATION
@@ -896,29 +870,29 @@ void drawSettingsScreen() {
     "PRINTER ID"
   };
 
-String wifiPassDisplay = "";
-String mqttPassDisplay = "";
+  String wifiPassDisplay = "";
+  String mqttPassDisplay = "";
 
-// Show saved password as stars.
-// If no password is saved, leave the box empty.
+  // Show saved password as stars.
+  // If no password is saved, leave the box empty.
 
-if (draftWifiPassword.length() > 0) {
-  wifiPassDisplay = "********";
-}
+  if (draftWifiPassword.length() > 0) {
+    wifiPassDisplay = "********";
+  }
 
-if (draftPassword.length() > 0) {
-  mqttPassDisplay = "********";
-}
+  if (draftPassword.length() > 0) {
+    mqttPassDisplay = "********";
+  }
 
-String values[] = {
-  draftWifiSSID,
-  wifiPassDisplay,
-  draftServer,
-  draftPort,
-  draftUser,
-  mqttPassDisplay,
-  draftSerial
-};
+  String values[] = {
+    draftWifiSSID,
+    wifiPassDisplay,
+    draftServer,
+    draftPort,
+    draftUser,
+    mqttPassDisplay,
+    draftSerial
+  };
 
   // =========================================
   // DRAW ALL SEVEN SETTINGS
@@ -937,8 +911,7 @@ String values[] = {
     tft.drawString(
       labels[i],
       labelX,
-      y + 7
-    );
+      y + 7);
 
     // Input field - right side
     tft.fillRoundRect(
@@ -947,8 +920,7 @@ String values[] = {
       fieldW,
       fieldH,
       5,
-      TFT_DARKGREY
-    );
+      TFT_DARKGREY);
 
     tft.drawRoundRect(
       fieldX,
@@ -956,8 +928,7 @@ String values[] = {
       fieldW,
       fieldH,
       5,
-      TFT_LIGHTGREY
-    );
+      TFT_LIGHTGREY);
 
     // Placeholder / current value
     String displayValue = values[i];
@@ -975,8 +946,7 @@ String values[] = {
     tft.drawString(
       displayValue,
       fieldX + 8,
-      y + 5
-    );
+      y + 5);
   }
 
   // =========================================
@@ -985,13 +955,11 @@ String values[] = {
 
   drawButton(
     12, 280, 140, 34,
-    "BACK", TFT_BLUE
-  );
+    "BACK", TFT_BLUE);
 
   drawButton(
     170, 280, 298, 34,
-    "UPDATE", TFT_DARKGREEN
-  );
+    "UPDATE", TFT_DARKGREEN);
 }
 
 // =====================================================
@@ -1104,14 +1072,14 @@ void drawKeyboard() {
   String fieldName;
 
   switch (activeField) {
-    case FIELD_WIFI_SSID:     fieldName = "WIFI SSID"; break;
+    case FIELD_WIFI_SSID: fieldName = "WIFI SSID"; break;
     case FIELD_WIFI_PASSWORD: fieldName = "WIFI PASSWORD"; break;
-    case FIELD_SERVER:        fieldName = "MQTT SERVER"; break;
-    case FIELD_PORT:          fieldName = "MQTT PORT"; break;
-    case FIELD_USER:          fieldName = "MQTT USER"; break;
-    case FIELD_PASSWORD:      fieldName = "MQTT PASSWORD"; break;
-    case FIELD_SERIAL:        fieldName = "PRINTER SERIAL"; break;
-    default:                  fieldName = "EDIT"; break;
+    case FIELD_SERVER: fieldName = "MQTT SERVER"; break;
+    case FIELD_PORT: fieldName = "MQTT PORT"; break;
+    case FIELD_USER: fieldName = "MQTT USER"; break;
+    case FIELD_PASSWORD: fieldName = "MQTT PASSWORD"; break;
+    case FIELD_SERIAL: fieldName = "PRINTER SERIAL"; break;
+    default: fieldName = "EDIT"; break;
   }
 
   tft.setTextDatum(TL_DATUM);
@@ -1132,19 +1100,16 @@ void drawKeyboard() {
 
   tft.fillRoundRect(
     inputX, inputY, inputW, inputH,
-    6, TFT_DARKGREY
-  );
+    6, TFT_DARKGREY);
 
   tft.drawRoundRect(
     inputX, inputY, inputW, inputH,
-    6, TFT_WHITE
-  );
+    6, TFT_WHITE);
 
   // Display password as stars
   String displayText = editBuffer;
 
-  if (activeField == FIELD_PASSWORD ||
-      activeField == FIELD_WIFI_PASSWORD) {
+  if (activeField == FIELD_PASSWORD || activeField == FIELD_WIFI_PASSWORD) {
 
     displayText = "";
 
@@ -1158,8 +1123,7 @@ void drawKeyboard() {
 
   if (displayText.length() > maxDisplayChars) {
     displayText = displayText.substring(
-      displayText.length() - maxDisplayChars
-    );
+      displayText.length() - maxDisplayChars);
   }
 
   tft.setTextDatum(ML_DATUM);
@@ -1170,8 +1134,7 @@ void drawKeyboard() {
   tft.drawString(
     displayText,
     inputX + 10,
-    inputY + 9
-  );
+    inputY + 9);
 
   // =========================================
   // KEYBOARD KEYS
@@ -1210,8 +1173,7 @@ void drawKeyboard() {
         keyW,
         38,
         key,
-        TFT_DARKGREY
-      );
+        TFT_DARKGREY);
     }
   }
 
@@ -1219,11 +1181,11 @@ void drawKeyboard() {
   // BOTTOM CONTROL BUTTONS
   // =========================================
 
-  drawButton(8,   270, 65, 42, "ABC",    TFT_BLUE);
-  drawButton(80,  270, 80, 42, "SPACE",  TFT_DARKGREY);
-  drawButton(167, 270, 90, 42, "DEL",    TFT_RED);
+  drawButton(8, 270, 65, 42, "ABC", TFT_BLUE);
+  drawButton(80, 270, 80, 42, "SPACE", TFT_DARKGREY);
+  drawButton(167, 270, 90, 42, "DEL", TFT_RED);
   drawButton(264, 270, 90, 42, "CANCEL", TFT_ORANGE);
-  drawButton(361, 270, 111, 42, "DONE",  TFT_DARKGREEN);
+  drawButton(361, 270, 111, 42, "DONE", TFT_DARKGREEN);
 }
 
 
@@ -1532,16 +1494,16 @@ void handleSettingsTouch(int x, int y) {
     if (x < 160) {
 
       // BACK
-screenMode = SCREEN_HOME;
+      screenMode = SCREEN_HOME;
 
-screenFirstDraw = true;
-lastRenderedState = (UIState)-1;
-lastStatusDrawn = "";
+      screenFirstDraw = true;
+      lastRenderedState = (UIState)-1;
+      lastStatusDrawn = "";
 
-drawStaticUI();
+      drawStaticUI();
 
-updateStatusBar();
-updateScreen();
+      updateStatusBar();
+      updateScreen();
     }
 
     else if (x >= 160) {
@@ -1694,7 +1656,7 @@ void resetPrintParameters() {
   progress = 0;
 
   currentLayer = 0;
-  totalLayers = 0;
+  totalLayers = lastTotalLayers = 0;
 
   remainingMins = 0;
 
@@ -1805,20 +1767,20 @@ void mqttCallback(
       }
 
       else if (
-  printState == "IDLE" || printState == "FAILED") {
+        printState == "IDLE" || printState == "FAILED") {
 
-  currentUIState = STATE_IDLE;
+        currentUIState = STATE_IDLE;
 
-  // Reset print information in READY state
-  progress = 0;
+        // Reset print information in READY state
+        progress = 0;
 
-  currentLayer = 0;
-  totalLayers = 0;
+        currentLayer = 0;
+        totalLayers = 0;
 
-  remainingMins = 0;
+        remainingMins = 0;
 
-  partName = "No Active Print";
-}
+        partName = "No Active Print";
+      }
     }
 
     // Part Name
@@ -1903,27 +1865,27 @@ void mqttCallback(
     }
   }
 
-// =========================================
-// RESET PARAMETERS WHEN PRINTER IS READY
-// =========================================
+  // =========================================
+  // RESET PARAMETERS WHEN PRINTER IS READY
+  // =========================================
 
-if (currentUIState == STATE_IDLE) {
+  if (currentUIState == STATE_IDLE) {
 
-  resetPrintParameters();
-}
-
-// =========================================
-// UPDATE STATUS AND SCHEDULE SCREEN REFRESH
-// =========================================
-
-if (screenMode == SCREEN_HOME) {
-
-  updateStatusBar();
-
-  if (updated) {
-    screenUpdatePending = true;
+    resetPrintParameters();
   }
-}
+
+  // =========================================
+  // UPDATE STATUS AND SCHEDULE SCREEN REFRESH
+  // =========================================
+
+  if (screenMode == SCREEN_HOME) {
+
+    updateStatusBar();
+
+    if (updated) {
+      screenUpdatePending = true;
+    }
+  }
 }
 
 // =====================================================
@@ -2019,8 +1981,7 @@ void startWiFiConnection() {
   // Start connection without waiting
   WiFi.begin(
     ssid.c_str(),
-    password.c_str()
-  );
+    password.c_str());
 
   lastWifiRetry = millis();
 
@@ -2053,8 +2014,7 @@ void setup() {
 
   client.setServer(
     mqtt_server.c_str(),
-    mqtt_port
-  );
+    mqtt_port);
 
   client.setCallback(mqttCallback);
 
@@ -2063,7 +2023,7 @@ void setup() {
   client.setKeepAlive(15);
 
   // PubSubClient standard API: one argument
-if (!client.setBufferSize(32768,32768)) {
+  if (!client.setBufferSize(32768, 32768)) {
     Serial.println("[MQTT] Buffer allocation failed!");
   } else {
     Serial.println("[MQTT] Buffer configured.");
@@ -2120,8 +2080,7 @@ void loop() {
     updateStatusBar();
 
     if (
-      millis() - lastWifiRetry >= WIFI_RETRY_INTERVAL
-    ) {
+      millis() - lastWifiRetry >= WIFI_RETRY_INTERVAL) {
 
       lastWifiRetry = millis();
 
@@ -2155,9 +2114,7 @@ void loop() {
   // =========================================
 
   if (
-    screenUpdatePending &&
-    millis() - lastScreenUpdate >= SCREEN_REFRESH_INTERVAL
-  ) {
+    screenUpdatePending && millis() - lastScreenUpdate >= SCREEN_REFRESH_INTERVAL) {
 
     screenUpdatePending = false;
 
@@ -2171,9 +2128,7 @@ void loop() {
   // =========================================
 
   if (
-    currentUIState == STATE_COMPLETED &&
-    millis() - completedStartTime >= COMPLETED_DISPLAY_MS
-  ) {
+    currentUIState == STATE_COMPLETED && millis() - completedStartTime >= COMPLETED_DISPLAY_MS) {
 
     currentUIState = STATE_IDLE;
 
