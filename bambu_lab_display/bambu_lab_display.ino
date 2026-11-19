@@ -116,7 +116,8 @@ PubSubClient client(espClient);
 enum UIState {
   STATE_IDLE,
   STATE_PRINTING,
-  STATE_COMPLETED
+  STATE_COMPLETED,
+  STATE_FAILED
 };
 
 UIState currentUIState = STATE_IDLE;
@@ -124,7 +125,18 @@ UIState lastRenderedState = (UIState)-1;
 
 unsigned long completedStartTime = 0;
 
-const unsigned long COMPLETED_DISPLAY_MS = 60000;
+const unsigned long COMPLETED_DISPLAY_MS = 30000;
+
+// Failed print display
+const unsigned long FAILED_DISPLAY_MS = 30000;
+unsigned long failedStartTime = 0;
+// Prevent repeated FAILED notifications
+bool failedStateHandled = false;
+bool startupCompleted = false;
+// Printer messages
+String printerMessages[8];
+int printerMessageCount = 0;
+int printerErrorCode = 0;
 
 // =====================================================
 // 4. PRINTER STATUS VARIABLES
@@ -161,6 +173,8 @@ uint16_t lastStatusDrawnColor = 0xFFFF;
 bool wifiEverConnected = false;
 bool mqttAttempted = false;
 
+bool touchWasPressed = false;
+
 unsigned long lastMqttAttempt = 0;
 unsigned long lastWifiRetry = 0;
 
@@ -184,7 +198,8 @@ const unsigned long SCREEN_REFRESH_INTERVAL = 300;
 enum ScreenMode {
   SCREEN_HOME,
   SCREEN_SETTINGS,
-  SCREEN_KEYBOARD
+  SCREEN_KEYBOARD,
+  SCREEN_MESSAGES
 };
 
 ScreenMode screenMode = SCREEN_HOME;
@@ -295,6 +310,26 @@ void drawSettingsIcon() {
   tft.drawFastHLine(459, 22, 5, TFT_WHITE);
 }
 
+// message icon
+void drawMessageIcon() {
+
+  // Message icon button - left of settings
+  tft.fillRoundRect(
+    380, 5, 42, 35, 5, TFT_BLUE);
+
+  // Message box outline
+  tft.drawRoundRect(
+    389, 12, 24, 16, 3, TFT_WHITE);
+
+  // Message tail
+  tft.drawLine(394, 28, 390, 33, TFT_WHITE);
+  tft.drawLine(390, 33, 400, 28, TFT_WHITE);
+
+  // Message lines
+  tft.drawFastHLine(394, 18, 14, TFT_WHITE);
+  tft.drawFastHLine(394, 23, 10, TFT_WHITE);
+}
+
 // =====================================================
 // 9. DRAW STATIC UI
 // =====================================================
@@ -313,7 +348,7 @@ void drawStaticUI() {
   tft.print("BAMBU LAB X1C");
 
   drawSettingsIcon();
-
+  drawMessageIcon();
   // Left-side progress
   tft.drawRect(15, 115, 245, 26, TFT_WHITE);
 
@@ -433,6 +468,7 @@ void showStatusBar(String message, uint16_t color) {
 
   tft.drawString(message, 10, 14);
 
+  drawMessageIcon();
   drawSettingsIcon();
 
   tft.endWrite();
@@ -451,7 +487,13 @@ void updateStatusBar() {
   String message;
   uint16_t color = TFT_DARKGREEN;
 
-  if (WiFi.status() != WL_CONNECTED) {
+  if (currentUIState == STATE_FAILED) {
+
+    message = "PRINT FAILED";
+    color = TFT_RED;
+  }
+
+  else if (WiFi.status() != WL_CONNECTED) {
 
     message = "WIFI DISCONNECTED";
     color = TFT_RED;
@@ -499,6 +541,11 @@ void updateStatusBar() {
       case STATE_COMPLETED:
         message = "PRINT COMPLETED";
         color = TFT_DARKGREEN;
+        break;
+      case STATE_FAILED:
+
+        message = "PRINT FAILED";
+        color = TFT_RED;
         break;
     }
   }
@@ -579,7 +626,7 @@ void updateScreen() {
   if (
     currentLayer != lastCurrentLayer || totalLayers != lastTotalLayers) {
 
-    tft.fillRect(140, 55, 120, 45, TFT_BLACK);
+    tft.fillRect(140, 55, 160, 45, TFT_BLACK);
 
     tft.setTextDatum(TL_DATUM);
     tft.setTextColor(TFT_YELLOW, TFT_BLACK);
@@ -726,7 +773,26 @@ void updateScreen() {
       tft.drawString(
         "No Active Print",
         370, 230);
-    } else {
+    }
+
+    else if (currentUIState == STATE_FAILED) {
+
+      tft.setTextDatum(MC_DATUM);
+      tft.setTextColor(TFT_RED, TFT_BLACK);
+      tft.setTextSize(3);
+      tft.setTextPadding(0);
+
+      tft.drawString(
+        "FAILED",
+        370, 150);
+
+      tft.setTextSize(1);
+      tft.drawString(
+        "Check printer messages",
+        370, 190);
+    }
+
+    else {
 
       drawPrintingIcon(370, 150);
     }
@@ -960,6 +1026,69 @@ void drawSettingsScreen() {
   drawButton(
     170, 280, 298, 34,
     "UPDATE", TFT_DARKGREEN);
+}
+
+void drawMessagesScreen() {
+
+  screenMode = SCREEN_MESSAGES;
+
+  tft.fillScreen(TFT_BLACK);
+
+  // Header
+  tft.fillRect(0, 0, 480, 42, TFT_DARKCYAN);
+
+  tft.setTextDatum(TL_DATUM);
+  tft.setTextColor(TFT_WHITE, TFT_DARKCYAN);
+  tft.setTextSize(2);
+  tft.drawString("PRINTER MESSAGES", 10, 11);
+
+  // Print error
+  tft.setTextColor(TFT_RED, TFT_BLACK);
+  tft.drawString(
+    "Print Error: " + String(printerErrorCode),
+    10, 52);
+
+  // Message list
+  tft.setTextColor(TFT_WHITE, TFT_BLACK);
+  tft.setTextSize(1);
+
+  if (printerMessageCount == 0 && printerErrorCode == 0) {
+
+    tft.drawString(
+      "No printer messages available.",
+      15, 100);
+  }
+
+  for (int i = 0; i < printerMessageCount; i++) {
+
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+
+    tft.drawString(
+      printerMessages[i],
+      15, 85 + (i * 22));
+  }
+
+  // Back button
+  drawButton(
+    12, 280, 140, 34,
+    "BACK", TFT_BLUE);
+}
+
+
+void handleMessagesTouch(int x, int y) {
+
+  if (y >= 280 && x < 160) {
+
+    screenMode = SCREEN_HOME;
+
+    screenFirstDraw = true;
+    lastRenderedState = (UIState)-1;
+    lastStatusDrawn = "";
+
+    drawStaticUI();
+    updateStatusBar();
+    updateScreen();
+  }
 }
 
 // =====================================================
@@ -1325,7 +1454,7 @@ void handleKeyboardTouch(int x, int y) {
 
   int keyX = startX + col * (keyW + gap);
 
-  if (x > keyX + keyW) {
+  if (x < keyX || x >= keyX + keyW) {
     return;
   }
 
@@ -1341,7 +1470,27 @@ void handleKeyboardTouch(int x, int y) {
 
   drawKeyboard();
 }
+//==============================================
+//21.2 validation checks for error
+//==============================================
+void showSettingsError(String message) {
 
+  Serial.println("[SETTINGS ERROR] " + message);
+
+  drawSettingsScreen();
+
+  tft.fillRoundRect(
+    10, 250, 460, 24,
+    4, TFT_RED);
+
+  tft.setTextDatum(MC_DATUM);
+  tft.setTextColor(TFT_WHITE, TFT_RED);
+  tft.setTextSize(1);
+
+  tft.drawString(
+    message,
+    240, 262);
+}
 
 // =====================================================
 // 22. UPDATE WIFI AND MQTT SETTINGS
@@ -1360,17 +1509,17 @@ void applySettings() {
   draftSerial.trim();
 
   if (draftWifiSSID.length() == 0) {
-    showStatusBar("WIFI SSID REQUIRED", TFT_RED);
+    showSettingsError("WIFI SSID REQUIRED");
     return;
   }
 
   if (draftServer.length() == 0) {
-    showStatusBar("MQTT SERVER REQUIRED", TFT_RED);
+    showSettingsError("MQTT SERVER REQUIRED");
     return;
   }
 
   if (draftSerial.length() == 0) {
-    showStatusBar("PRINTER ID REQUIRED", TFT_RED);
+    showSettingsError("PRINTER ID REQUIRED");
     return;
   }
 
@@ -1387,7 +1536,7 @@ void applySettings() {
   long newPort = draftPort.toInt();
 
   if (!validPort || newPort < 1 || newPort > 65535) {
-    showStatusBar("INVALID MQTT PORT", TFT_RED);
+    showSettingsError("INVALID MQTT PORT");
     return;
   }
 
@@ -1478,7 +1627,6 @@ void applySettings() {
   Serial.println("[SETTINGS] Saved and applied successfully.");
 }
 
-
 // =====================================================
 // 23. HANDLE SETTINGS TOUCH
 // =====================================================
@@ -1563,9 +1711,21 @@ void handleSettingsTouch(int x, int y) {
 
 void handleTouchInput() {
 
-  if (!tft.getTouch(&touchX, &touchY)) {
+  bool touched = tft.getTouch(&touchX, &touchY);
+
+  if (!touched) {
+
+    touchWasPressed = false;
+
     return;
   }
+
+  // Process only the first touch event.
+  if (touchWasPressed) {
+    return;
+  }
+
+  touchWasPressed = true;
 
   if (
     millis() - lastTouchTime < TOUCH_DEBOUNCE) {
@@ -1579,11 +1739,20 @@ void handleTouchInput() {
   Serial.print(" Y: ");
   Serial.println(touchY);
 
+
   if (screenMode == SCREEN_HOME) {
 
-    // Settings icon
+    // Message icon
     if (
+      touchX >= 380 && touchX <= 422 && touchY <= 45) {
+
+      drawMessagesScreen();
+    }
+
+    // Settings icon
+    else if (
       touchX >= 425 && touchY <= 45) {
+
       openSettings();
     }
   }
@@ -1598,6 +1767,13 @@ void handleTouchInput() {
   else if (screenMode == SCREEN_KEYBOARD) {
 
     handleKeyboardTouch(
+      touchX,
+      touchY);
+  }
+
+  else if (screenMode == SCREEN_MESSAGES) {
+
+    handleMessagesTouch(
       touchX,
       touchY);
   }
@@ -1656,14 +1832,55 @@ void resetPrintParameters() {
   progress = 0;
 
   currentLayer = 0;
-  totalLayers = lastTotalLayers = 0;
+  totalLayers = 0;
 
   remainingMins = 0;
 
   partName = "No Active Print";
-
-  Serial.println("[SYSTEM] Print parameters reset to READY state.");
 }
+
+//=====================
+void updatePrinterMessages(JsonObject printObj) {
+
+  // Print error code
+  if (printObj.containsKey("print_error")) {
+
+    printerErrorCode =
+      printObj["print_error"].as<int>();
+  }
+
+  // HMS messages
+  if (printObj.containsKey("hms")) {
+
+    JsonArray hmsArray = printObj["hms"].as<JsonArray>();
+
+    printerMessageCount = 0;
+
+    for (JsonObject hms : hmsArray) {
+
+      if (printerMessageCount >= 8) {
+        break;
+      }
+
+      uint32_t attr = hms["attr"] | 0;
+      uint32_t code = hms["code"] | 0;
+
+      char message[60];
+
+      snprintf(
+        message,
+        sizeof(message),
+        "HMS: %08lX - %08lX",
+        (unsigned long)attr,
+        (unsigned long)code);
+
+      printerMessages[printerMessageCount] = message;
+
+      printerMessageCount++;
+    }
+  }
+}
+//=====================
 // =====================================================
 // 26. MQTT CALLBACK
 // =====================================================
@@ -1742,150 +1959,183 @@ void mqttCallback(
 
   if (!printObj.isNull()) {
 
+    updatePrinterMessages(printObj);
+
+    // Show FAILED state when printer reports an actual print error
+    if (printerErrorCode != 0 && currentUIState != STATE_FAILED) {
+
+      currentUIState = STATE_FAILED;
+      failedStartTime = millis();
+
+      failedStateHandled = true;
+      screenUpdatePending = true;
+      updated = true;
+
+      Serial.println("[PRINT] Printer error detected!");
+    }
     // G-code State
     if (printObj["gcode_state"].is<String>()) {
 
       prevPrintState = printState;
-
-      printState =
-        printObj["gcode_state"].as<String>();
-
+      printState = printObj["gcode_state"].as<String>();
       updated = true;
 
-      if (
-        printState == "RUNNING" || printState == "PAUSE" || printState == "PREPARE") {
+      // Reset failure protection only when printer leaves FAILED
+      if (printState != "FAILED") {
+        failedStateHandled = false;
+      }
+
+      if (printState == "RUNNING" || printState == "PAUSE" || printState == "PREPARE") {
 
         currentUIState = STATE_PRINTING;
       }
 
-      else if (
-        printState == "FINISH" && prevPrintState != "FINISH" && prevPrintState != "IDLE") {
+      else if (printState == "FINISH" && prevPrintState != "FINISH" && prevPrintState != "IDLE") {
 
         currentUIState = STATE_COMPLETED;
-
         completedStartTime = millis();
       }
 
-      else if (
-        printState == "IDLE" || printState == "FAILED") {
+      else if (printState == "FAILED") {
 
-        currentUIState = STATE_IDLE;
+        // Ignore old FAILED status during ESP32 startup
+        if (!startupCompleted) {
 
-        // Reset print information in READY state
-        progress = 0;
+          failedStateHandled = true;
+          currentUIState = STATE_IDLE;
 
-        currentLayer = 0;
-        totalLayers = 0;
+          Serial.println("[STARTUP] Old FAILED status ignored.");
+        }
 
-        remainingMins = 0;
+        // Accept a new failure only after startup
+        else if (!failedStateHandled) {
 
-        partName = "No Active Print";
+          currentUIState = STATE_FAILED;
+          failedStartTime = millis();
+          failedStateHandled = true;
+          screenUpdatePending = true;
+
+          Serial.println("[PRINT] New FAILED status detected.");
+        }
+      }
+
+      else if (printState == "IDLE") {
+
+        if (currentUIState != STATE_COMPLETED && currentUIState != STATE_FAILED) {
+
+          currentUIState = STATE_IDLE;
+          progress = 0;
+          currentLayer = 0;
+          totalLayers = 0;
+          remainingMins = 0;
+          partName = "No Active Print";
+        }
+      }
+      // Part Name
+      if (printObj.containsKey("subtask_name")) {
+
+        partName =
+          printObj["subtask_name"].as<String>();
+
+        updated = true;
+      }
+
+      // Progress
+      if (printObj.containsKey("mc_percent")) {
+
+        progress =
+          printObj["mc_percent"].as<int>();
+
+        updated = true;
+      }
+
+      // Nozzle Temperature
+      if (printObj.containsKey("nozzle_temper")) {
+
+        nozzleTemp =
+          printObj["nozzle_temper"].as<float>();
+
+        updated = true;
+      }
+
+      // Nozzle Target Temperature
+      if (printObj.containsKey("nozzle_target_temper")) {
+
+        nozzleTarget =
+          printObj["nozzle_target_temper"].as<float>();
+
+        updated = true;
+      }
+
+      // Bed Temperature
+      if (printObj.containsKey("bed_temper")) {
+
+        bedTemp =
+          printObj["bed_temper"].as<float>();
+
+        updated = true;
+      }
+
+      // Bed Target Temperature
+      if (printObj.containsKey("bed_target_temper")) {
+
+        bedTarget =
+          printObj["bed_target_temper"].as<float>();
+
+        updated = true;
+      }
+
+      // Current Layer
+      if (printObj.containsKey("layer_num")) {
+
+        currentLayer =
+          printObj["layer_num"].as<int>();
+
+        updated = true;
+      }
+
+      // Total Layers
+      if (printObj.containsKey("total_layer_num")) {
+
+        totalLayers =
+          printObj["total_layer_num"].as<int>();
+
+        updated = true;
+      }
+
+      // Remaining Time
+      if (printObj.containsKey("mc_remaining_time")) {
+
+        remainingMins =
+          printObj["mc_remaining_time"].as<int>();
+
+        updated = true;
+      }
+      startupCompleted = true;
+    }
+
+    // =========================================
+    // RESET PARAMETERS WHEN PRINTER IS READY
+    // =========================================
+
+    if (currentUIState == STATE_IDLE) {
+      resetPrintParameters();
+    }
+
+    // =========================================
+    // UPDATE STATUS AND SCHEDULE SCREEN REFRESH
+    // =========================================
+
+    if (screenMode == SCREEN_HOME) {
+
+      updateStatusBar();
+
+      if (updated) {
+        screenUpdatePending = true;
       }
     }
 
-    // Part Name
-    if (printObj.containsKey("subtask_name")) {
-
-      partName =
-        printObj["subtask_name"].as<String>();
-
-      updated = true;
-    }
-
-    // Progress
-    if (printObj.containsKey("mc_percent")) {
-
-      progress =
-        printObj["mc_percent"].as<int>();
-
-      updated = true;
-    }
-
-    // Nozzle Temperature
-    if (printObj.containsKey("nozzle_temper")) {
-
-      nozzleTemp =
-        printObj["nozzle_temper"].as<float>();
-
-      updated = true;
-    }
-
-    // Nozzle Target Temperature
-    if (printObj.containsKey("nozzle_target_temper")) {
-
-      nozzleTarget =
-        printObj["nozzle_target_temper"].as<float>();
-
-      updated = true;
-    }
-
-    // Bed Temperature
-    if (printObj.containsKey("bed_temper")) {
-
-      bedTemp =
-        printObj["bed_temper"].as<float>();
-
-      updated = true;
-    }
-
-    // Bed Target Temperature
-    if (printObj.containsKey("bed_target_temper")) {
-
-      bedTarget =
-        printObj["bed_target_temper"].as<float>();
-
-      updated = true;
-    }
-
-    // Current Layer
-    if (printObj.containsKey("layer_num")) {
-
-      currentLayer =
-        printObj["layer_num"].as<int>();
-
-      updated = true;
-    }
-
-    // Total Layers
-    if (printObj.containsKey("total_layer_num")) {
-
-      totalLayers =
-        printObj["total_layer_num"].as<int>();
-
-      updated = true;
-    }
-
-    // Remaining Time
-    if (printObj.containsKey("mc_remaining_time")) {
-
-      remainingMins =
-        printObj["mc_remaining_time"].as<int>();
-
-      updated = true;
-    }
-  }
-
-  // =========================================
-  // RESET PARAMETERS WHEN PRINTER IS READY
-  // =========================================
-
-  if (currentUIState == STATE_IDLE) {
-
-    resetPrintParameters();
-  }
-
-  // =========================================
-  // UPDATE STATUS AND SCHEDULE SCREEN REFRESH
-  // =========================================
-
-  if (screenMode == SCREEN_HOME) {
-
-    updateStatusBar();
-
-    if (updated) {
-      screenUpdatePending = true;
-    }
-  }
+  }  // END OF mqttCallback()
 }
 
 // =====================================================
@@ -2055,7 +2305,24 @@ void loop() {
   // =========================================
 
   handleTouchInput();
+  // =========================================
+  // FAILED PRINT RESET AFTER 60 SECONDS
+  // =========================================
 
+  if (
+    currentUIState == STATE_FAILED && millis() - failedStartTime >= FAILED_DISPLAY_MS) {
+
+    currentUIState = STATE_IDLE;
+
+    resetPrintParameters();
+
+    screenUpdatePending = true;
+    lastRenderedState = (UIState)-1;
+
+    if (screenMode == SCREEN_HOME) {
+      updateStatusBar();
+    }
+  }
   // =========================================
   // PROCESS MQTT EVEN ON SETTINGS SCREEN
   // =========================================
@@ -2122,7 +2389,6 @@ void loop() {
 
     updateScreen();
   }
-
   // =========================================
   // PRINT COMPLETION RESET
   // =========================================
@@ -2138,8 +2404,8 @@ void loop() {
 
     lastRenderedState = (UIState)-1;
 
-    updateStatusBar();
+    if (screenMode == SCREEN_HOME) {
+      updateStatusBar();
+    }
   }
-
-  delay(5);
 }
