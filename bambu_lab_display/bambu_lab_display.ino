@@ -171,12 +171,13 @@ String lastStatusDrawn = "";
 uint16_t lastStatusDrawnColor = 0xFFFF;
 
 bool wifiEverConnected = false;
+unsigned long lastWifiRetry = 0;
+
 bool mqttAttempted = false;
+unsigned long lastMqttAttempt = 0;
 
 bool touchWasPressed = false;
 
-unsigned long lastMqttAttempt = 0;
-unsigned long lastWifiRetry = 0;
 
 const unsigned long MQTT_RETRY_INTERVAL = 3000;
 const unsigned long WIFI_RETRY_INTERVAL = 10000;
@@ -626,7 +627,7 @@ void updateScreen() {
   if (
     currentLayer != lastCurrentLayer || totalLayers != lastTotalLayers) {
 
-    tft.fillRect(140, 55, 160, 45, TFT_BLACK);
+    tft.fillRect(140, 55, 150, 45, TFT_BLACK);
 
     tft.setTextDatum(TL_DATUM);
     tft.setTextColor(TFT_YELLOW, TFT_BLACK);
@@ -636,7 +637,7 @@ void updateScreen() {
     String layerText =
       "Layer " + String(currentLayer) + " / " + String(totalLayers);
 
-    tft.drawString(layerText, 145, 72);
+    tft.drawString(layerText, 140, 72);
 
     lastCurrentLayer = currentLayer;
     lastTotalLayers = totalLayers;
@@ -1837,6 +1838,10 @@ void resetPrintParameters() {
   remainingMins = 0;
 
   partName = "No Active Print";
+
+  // Force layer display refresh
+    lastCurrentLayer = -1;
+    lastTotalLayers = -1;
 }
 
 //=====================
